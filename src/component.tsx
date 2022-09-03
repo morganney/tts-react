@@ -3,9 +3,9 @@ import type { CSSProperties } from 'react'
 
 import { useTts } from './hook'
 import type { TTSHookProps } from './hook'
-import { Icon, sizes as iconSizes, Sizes } from './icons'
+import { iconSizes, Sizes } from './icons'
 import type { SvgProps } from './icons'
-import { Button, padding as btnPadding } from './button'
+import { Control, padding as ctrlPadding } from './control'
 
 enum Positions {
   TL = 'topLeft',
@@ -16,12 +16,12 @@ enum Positions {
 interface TTSProps extends TTSHookProps {
   align?: 'vertical' | 'horizontal'
   size?: SvgProps['size']
-  position?: Positions
+  position?: `${Positions}`
   allowMuting?: boolean
 }
 type ControlsProps = Required<Pick<TTSProps, 'align' | 'position' | 'size'>>
 
-const getTRBL = (position: Positions) => {
+const getTRBL = (position: TTSProps['position']) => {
   switch (position) {
     case Positions.TL:
       return { top: '1px', left: '1px' }
@@ -44,10 +44,11 @@ const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
     flexDirection: align === 'horizontal' ? 'row' : 'column',
     position: 'absolute',
     ...getTRBL(position),
+    zIndex: 1,
     gap: '5px',
-    padding: `${btnPadding[size]}px`,
+    padding: 0,
     backgroundColor: '#f2f1f1a6',
-    borderRadius: `${iconSizes[size] + btnPadding[size]}px`,
+    borderRadius: `${iconSizes[size] + ctrlPadding[size]}px`,
     border: '1px solid transparent'
   }
 }
@@ -86,30 +87,23 @@ const TextToSpeech = ({
       {state.isReady && (
         <aside style={controlsStyle}>
           {allowMuting && (
-            <Button title="Mute audio" size={size} onClick={onMuted}>
-              {state.isMuted ? (
-                <Icon type="volumeOff" size={size} />
-              ) : state.isPlaying ? (
-                <Icon type="volumeUp" size={size} />
-              ) : (
-                <Icon type="volumeDown" size={size} />
-              )}
-            </Button>
+            <Control
+              size={size}
+              title="Mute audio"
+              onClick={onMuted}
+              type={
+                state.isMuted ? 'volumeOff' : state.isPlaying ? 'volumeUp' : 'volumeDown'
+              }
+            />
           )}
-          <Button
-            size={size}
+          <Control
+            type={state.isPlaying ? 'pause' : 'play'}
             title={state.isPlaying ? 'Pause' : 'Play'}
-            onClick={onPlayPause}>
-            {state.isPlaying ? (
-              <Icon type="pause" size={size} />
-            ) : (
-              <Icon type="play" size={size} />
-            )}
-          </Button>
+            onClick={onPlayPause}
+            size={size}
+          />
           {state.isPaused && (
-            <Button title="Replay" size={size} onClick={onReset}>
-              {<Icon type="replay" size={size} />}
-            </Button>
+            <Control type="replay" size={size} title="Replay" onClick={onReset} />
           )}
         </aside>
       )}

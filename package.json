@@ -1,6 +1,6 @@
 {
   "name": "tts-react",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "React component to convert text to speech.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,8 +9,8 @@
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir dist --extensions '.ts,.tsx'",
     "build": "npm run build:types && npm run build:js",
-    "lint": "eslint . src demo --ignore-pattern dist --ext .js,.ts,.tsx",
-    "prettier": "prettier --no-error-on-unmatched-pattern --write *.{js,ts} {src,demo}/**/*.{ts,tsx}",
+    "lint": "eslint . src demo --ignore-pattern dist --ext .ts,.tsx",
+    "prettier": "prettier --no-error-on-unmatched-pattern --write *.ts {src,demo}/**/*.{ts,tsx}",
     "demo": "npm run build && start-storybook -c demo/.storybook -p 3000",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepack": "npm run build"

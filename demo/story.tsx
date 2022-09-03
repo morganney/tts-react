@@ -29,8 +29,8 @@ const RandomSentence: ComponentStory<typeof TextToSpeech> = (args) => {
 }
 const Sentence: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
-    <TextToSpeech {...args}>
-      <p>Here is a &apos;sentence&apos; of text with some punctuation to be spoken.</p>
+    <TextToSpeech {...args} size="small" position="topLeft">
+      <p>Converting text to speech with React!</p>
     </TextToSpeech>
   )
 }
@@ -243,6 +243,24 @@ export default {
     },
     onError: {
       action: 'onError'
+    },
+    size: {
+      options: [Sizes.SMALL, Sizes.MEDIUM, Sizes.LARGE],
+      control: {
+        type: 'radio'
+      }
+    },
+    position: {
+      options: [Positions.TR, Positions.TL, Positions.BL, Positions.BR],
+      control: {
+        type: 'radio'
+      }
+    },
+    align: {
+      options: ['horizontal', 'vertical'],
+      control: {
+        type: 'radio'
+      }
     }
   }
 } as ComponentMeta<typeof TextToSpeech>
