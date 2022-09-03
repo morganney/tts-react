@@ -2,9 +2,11 @@
 
 ![CI](https://github.com/morganney/tts-react/actions/workflows/ci.yml/badge.svg)
 
+![TextToSpeech react component](./tts-react.png)
+
 `tts-react` provides a hook (`useTts`) and component (`TextToSpeech`) to convert text to speech. In most cases you want the hook so you can use custom styling on the audio controls.
 
-By default `tts-react` uses [`SpeechSynthesis`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis) and [`SpeechSynthesisUtterance`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance) API's. You can fallback to the [`HTMLAudioElement`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio) API by providing a `fetchAudioData` prop to the hook or component. Some features may work better with different technologies depending on what you're after. You can read more about it in the props section below.
+By default `tts-react` uses the [`SpeechSynthesis`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis) and [`SpeechSynthesisUtterance`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance) API's. You can fallback to the [`HTMLAudioElement`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio) API by providing a `fetchAudioData` prop to the hook or component.
 
 ## Install
 
@@ -12,9 +14,9 @@ By default `tts-react` uses [`SpeechSynthesis`](https://developer.mozilla.org/en
 
 ## Props
 
-Most of these are supported by the `useTts` hook, but those marked with an asterisk are exclusive to the `TextToSpeech` component. You can pass them to the hook if you want, they just won't do anything.
+Most of these are supported by the `useTts` hook, but those marked with an asterisk are exclusive to the `TextToSpeech` component.
 
-`*` Only applies to `TextToSpeech` component.
+<sub>`*` Only applies to `TextToSpeech` component.</sub>
 
 |Name|Required|Type|Default|Description|
 |----|--------|----|-------|-----------|
@@ -23,18 +25,19 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 |markTextAsSpoken|no|`boolean`|`false`|Whether the word being spoken should be highlighted.|
 |markColor|no|`string`|none|Color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
 |markBackgroundColor|no|`string`|none|Background color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
-|voiceName|no|`string`|The name associated with the browser's first available [`SpeechSynthesisVoice`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisVoice). If using `fetchAudioData` then whatever voice is provided by the returned `audio` field URL.|The voice heard when the text is spoken.|
-|fetchAudioData|no|`(text: string) => Promise<TTSAudioData>`|none|Function to return the optional Speech Marks and audio URL for the text to be spoken. See the type definition of `TTSAudioData` for more details.|
-|`*`allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio. Calls `onMuted` when clicked.|
+|voiceName|no|`string`|`speechSynthesis.getVoices()[0]` or the voice provided by `audio` from `TTSAudioData`.|The voice heard when the text is spoken.|
+|fetchAudioData|no|`(text: string) => Promise<TTSAudioData>`|none|Function to return the optional `SpeechMarks[]` and `audio` URL for the text to be spoken. See [fetchAudioData](#fetchaudiodata) for more details.|
+|<sup>`*`</sup>allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio. Calls `onMuted` when clicked.|
 |onMuted|no|`(wasMuted: boolean) => void`|none|Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.|
 |onError|no|`(evt: CustomEvent<string>) => void`|none|Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided in `evt.detail`.|
-|`*`align|no|`'horizontal' \| 'vertical'`|`'horizontal'`|How to align the controls within the `TextToSpeech` component.|
-|`*`size|no|`'small' \| 'medium' \| 'large'`|`'medium'`|The relative size of the controls within the `TextToSpeech` component.|
-|`*`position|no|`'topRight' \| 'topLeft' \| 'bottomRight' \| 'bottomLeft'`|`'topRight'`|The relative positioning of the controls within the `TextToSpeech` component.|
+|<sup>`*`</sup>align|no|`'horizontal' \| 'vertical'`|`'horizontal'`|How to align the controls within the `TextToSpeech` component.|
+|<sup>`*`</sup>size|no|`'small' \| 'medium' \| 'large'`|`'medium'`|The relative size of the controls within the `TextToSpeech` component.|
+|<sup>`*`</sup>position|no|`'topRight' \| 'topLeft' \| 'bottomRight' \| 'bottomLeft'`|`'topRight'`|The relative positioning of the controls within the `TextToSpeech` component.|
 
-## Hook
 
-The hook returns the modified children if using `markTextAsSpoken`, the state of the component and callbacks that can be used to control playing, stopping, pausing, etc. of the audio. The parameters accepted are described above in the **Props** section. The response object is described by the `TTSHookResponse` type.
+## `useTts`
+
+The hook returns the state of the component, callbacks that can be used to control playing, stopping, pausing, etc. of the audio, and modified `children` if using `markTextAsSpoken`. The parameters accepted are described above in the [Props](#props) section. The response object is described by the `TTSHookResponse` type.
 
 ```ts
 const useTts = ({
@@ -130,6 +133,7 @@ The `audio` property must be a URL that can be applied to [`HTMLAudioElement.src
 ## Examples
 
 #### Hook
+
 ```ts
 import { useTts } from 'tts-react'
 import type { TTSHookProps } from 'tts-react'
