@@ -1,9 +1,16 @@
 {
   "name": "tts-react",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "React component to convert text to speech.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/morganney/tts-react.git"
+  },
+  "bugs": {
+    "url": "https://github.com/morganney/tts-react/issues"
+  },
   "scripts": {
     "check-types": "tsc --noEmit",
     "build:types": "tsc --emitDeclarationOnly",
@@ -20,12 +27,10 @@
   },
   "keywords": [
     "text-to-speech",
-    "text",
-    "to",
-    "speech",
     "tts",
     "react",
-    "speechsynthesis",
+    "speech",
+    "synthesis",
     "amazon-polly"
   ],
   "author": "Morgan Ney <morganney@gmail.com>",
