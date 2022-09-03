@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/morganney/tts-react/actions/workflows/ci.yml/badge.svg)
 
-![TextToSpeech react component](./tts-react.png)
+<img src="./tts-react.png" alt="TextToSpeech React component" style="width: 40%; aspect-ratio: 10.14;" />
 
 `tts-react` provides a hook (`useTts`) and component (`TextToSpeech`) to convert text to speech. In most cases you want the hook so you can use custom styling on the audio controls.
 
