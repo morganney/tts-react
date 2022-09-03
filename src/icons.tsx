@@ -7,10 +7,10 @@ enum Sizes {
 }
 
 interface SvgProps {
-  size: Sizes
+  size: `${Sizes}`
 }
 interface IconProps {
-  size: Sizes
+  size: SvgProps['size']
   type: 'play' | 'stop' | 'pause' | 'replay' | 'volumeDown' | 'volumeOff' | 'volumeUp'
 }
 

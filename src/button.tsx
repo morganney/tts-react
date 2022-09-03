@@ -2,13 +2,14 @@ import { useState } from 'react'
 import type { ReactNode, MouseEventHandler, CSSProperties } from 'react'
 
 import { Sizes, sizes as iconSizes } from './icons'
+import type { SvgProps } from './icons'
 
 const padding = {
   [Sizes.SMALL]: 3,
   [Sizes.MEDIUM]: 5,
   [Sizes.LARGE]: 5
 }
-const button = (size: Sizes, hovering: boolean): CSSProperties => {
+const button = (size: SvgProps['size'], hovering: boolean): CSSProperties => {
   return {
     padding: `${padding[size]}px`,
     margin: 0,
@@ -29,7 +30,7 @@ const Button = ({
   onClick
 }: {
   children: ReactNode
-  size: Sizes
+  size: SvgProps['size']
   title: string
   onClick: MouseEventHandler<HTMLButtonElement>
 }) => {

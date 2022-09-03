@@ -16,12 +16,12 @@ enum Positions {
 interface TTSProps extends TTSHookProps {
   align?: 'vertical' | 'horizontal'
   size?: SvgProps['size']
-  position?: Positions
+  position?: `${Positions}`
   allowMuting?: boolean
 }
 type ControlsProps = Required<Pick<TTSProps, 'align' | 'position' | 'size'>>
 
-const getTRBL = (position: Positions) => {
+const getTRBL = (position: TTSProps['position']) => {
   switch (position) {
     case Positions.TL:
       return { top: '1px', left: '1px' }
