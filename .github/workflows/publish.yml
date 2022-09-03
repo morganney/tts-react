@@ -1,0 +1,33 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    if: contains('["morganney"]', github.actor)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+      - name: Setup Node
+        uses: actions/setup-node@v2.4.0
+        with:
+          node-version: '16.16.0'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Save error log
+        uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
+        with:
+          name: npm-debug-log-${{ hashFiles('package-lock.json') }}
+          path: npm-debug.log
+      - name: Test
+        run: npm test
+      - name: Lint
+        run: npm run lint
+      - name: Push to NPM registry
+        uses: JS-DevTools/npm-publish@v1.4.3
+        with:
+          token: ${{ secrets.NPM_AUTH_TOKEN }}
