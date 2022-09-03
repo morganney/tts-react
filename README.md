@@ -25,10 +25,10 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 |markBackgroundColor|no|`string`|none|Background color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
 |voiceName|no|`string`|The name associated with the browser's first available [`SpeechSynthesisVoice`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisVoice). If using `fetchAudioData` then whatever voice is provided by the returned `audio` field URL.|The voice heard when the text is spoken.|
 |fetchAudioData|no|`(text: string) => Promise<TTSAudioData>`|none|Function to return the optional Speech Marks and audio URL for the text to be spoken. See the type definition of `TTSAudioData` for more details.|
-|`*`allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio. Calls `onMuted` when clicked.
+|`*`allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio. Calls `onMuted` when clicked.|
 |onMuted|no|`(wasMuted: boolean) => void`|none|Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.|
 |onError|no|`(evt: CustomEvent<string>) => void`|none|Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided in `evt.detail`.|
-|`*`align|no|`'horizontal' | 'vertical'`| `'horizontal'`|How to align the controls within the `TextToSpeech` component.|
+|`*`align|no|`'horizontal' | 'vertical'`|`'horizontal'`|How to align the controls within the `TextToSpeech` component.|
 |`*`size|no|`'small' | 'medium' | 'large'`|`'medium'`|The relative size of the controls within the `TextToSpeech` component.|
 |`*`position|no|`'topRight' | 'topLeft' | 'bottomRight' | 'bottomLeft'`|`'topRight'`|The relative positioning of the controls within the `TextToSpeech` component.|
 
