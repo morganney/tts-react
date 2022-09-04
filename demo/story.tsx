@@ -34,13 +34,19 @@ const Sentence: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const Locale: ComponentStory<typeof TextToSpeech> = (args) => {
+const LocaleEsES: ComponentStory<typeof TextToSpeech> = (args) => {
+  const esVoices = voices.filter((voice) => voice.lang === 'es-ES')
+  const voice = esVoices.find((voice) => voice.name === 'Monica') ?? esVoices[0]
+
   return (
-    <TextToSpeech {...args} lang="en-GB">
+    <>
       <p>
         The <code>lang</code> prop only works for SpeechSynthesis.
       </p>
-    </TextToSpeech>
+      <TextToSpeech {...args} lang="es-ES" voice={voice}>
+        <p>¿Hola, cómo estás hoy?</p>
+      </TextToSpeech>
+    </>
   )
 }
 const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
@@ -75,7 +81,8 @@ const Hook: ComponentStory<typeof TextToSpeech> = () => {
     children: 'Use the hook to create controls with custom styling.',
     autoPlay: false,
     markTextAsSpoken: true,
-    voiceName: 'Alex'
+    lang: 'es-ES'
+    //voice: voices.find((voice) => voice.lang === 'en-GB')
   })
 
   return (
@@ -89,8 +96,10 @@ const Hook: ComponentStory<typeof TextToSpeech> = () => {
   )
 }
 const StandardExample: ComponentStory<typeof TextToSpeech> = (args) => {
+  const voice = voices.find((voice) => voice.name === 'Samantha') ?? voices[0]
+
   return (
-    <TextToSpeech {...args} voiceName="Samantha" position={Positions.TL} align="vertical">
+    <TextToSpeech {...args} voice={voice} position={Positions.TL} align="vertical">
       <div style={{ minWidth: '300px', paddingLeft: '60px' }}>
         <p>During their day, workers in this cluster might:</p>
         <ul>
@@ -205,7 +214,7 @@ const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
 }
 
 StandardExample.argTypes = {
-  voiceName: {
+  voice: {
     control: false
   },
   position: {
@@ -216,7 +225,7 @@ StandardExample.argTypes = {
   }
 }
 AmazonPolly.argTypes = {
-  voiceName: {
+  voice: {
     control: false
   }
 }
@@ -286,7 +295,7 @@ export {
   Sentence,
   RandomSentence,
   RandomText,
-  Locale,
+  LocaleEsES,
   Hook,
   ImageText,
   ErrorExample

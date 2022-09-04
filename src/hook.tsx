@@ -31,7 +31,7 @@ interface TTSHookProps extends MarkStyles {
   onMuted?: (muted: boolean) => void
   onError?: (errorMsg: string) => void
   fetchAudioData?: ControllerOptions['fetchAudioData']
-  voiceName?: ControllerOptions['name']
+  voice?: ControllerOptions['voice']
 }
 interface TTSHookState {
   boundary: TTSBoundaryUpdate
@@ -193,13 +193,13 @@ const reducer = (state: TTSHookState, action: Action): TTSHookState => {
 }
 const useTts = ({
   lang,
+  voice,
   children,
+  markColor,
+  markBackgroundColor,
   onError,
   onMuted,
   fetchAudioData,
-  voiceName,
-  markColor,
-  markBackgroundColor,
   autoPlay = false,
   markTextAsSpoken = false
 }: TTSHookProps): TTSHookResponse => {
@@ -227,12 +227,12 @@ const useTts = ({
     () =>
       new Controller({
         lang,
+        voice,
         fetchAudioData,
         text: spokenText,
-        name: voiceName,
         dispatchBoundaries: markTextAsSpoken
       }),
-    [lang, fetchAudioData, spokenText, voiceName, markTextAsSpoken]
+    [lang, voice, fetchAudioData, spokenText, markTextAsSpoken]
   )
   const onPlay = useCallback(() => {
     if (state.isPaused) {

@@ -36,7 +36,7 @@ interface CustomErrorEventListener {
 interface ControllerOptions {
   text: string
   lang?: string
-  name?: string
+  voice?: SpeechSynthesisVoice
   dispatchBoundaries?: boolean
   fetchAudioData?: FetchAudioData
 }
@@ -67,32 +67,30 @@ class Controller extends EventTarget {
       this.target = this.synthesizer = new Audio()
       this.fetchAudioData = options.fetchAudioData
     } else {
-      this.initWebSpeechVoice(options.name)
+      this.initWebSpeechVoice(options.voice)
 
       if ('onvoiceschanged' in window.speechSynthesis) {
         window.speechSynthesis.addEventListener('voiceschanged', () => {
-          this.initWebSpeechVoice(options.name)
+          this.initWebSpeechVoice(options.voice)
         })
       }
     }
   }
 
-  protected initWebSpeechVoice(name?: string): void {
+  protected initWebSpeechVoice(voice?: SpeechSynthesisVoice): void {
     if (this.target instanceof SpeechSynthesisUtterance) {
       let voices = window.speechSynthesis.getVoices()
-      const defaultVoice = voices[0]
+
+      if (voice) {
+        this.target.voice = voice
+      }
 
       if (this.locale) {
         voices = voices.filter((voice) => voice.lang === this.locale)
-      }
+        this.target.voice = voices[0] ?? null
 
-      this.target.voice = voices[0] ?? defaultVoice
-
-      if (name) {
-        const found = voices.find((voice) => voice.name === name)
-
-        if (found) {
-          this.target.voice = found
+        if (voice && voice.lang === this.locale) {
+          this.target.voice = voice
         }
       }
     }
@@ -262,6 +260,7 @@ class Controller extends EventTarget {
     if (this.target instanceof SpeechSynthesisUtterance) {
       this.locale = value
       this.target.lang = value
+      this.target.voice = null
       this.initWebSpeechVoice()
     }
   }

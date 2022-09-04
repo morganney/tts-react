@@ -44,7 +44,7 @@ const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
     flexDirection: align === 'horizontal' ? 'row' : 'column',
     position: 'absolute',
     ...getTRBL(position),
-    zIndex: 1,
+    zIndex: 9999,
     gap: '5px',
     padding: 0,
     backgroundColor: '#f2f1f1a6',
@@ -54,8 +54,8 @@ const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
 }
 const TextToSpeech = ({
   lang,
+  voice,
   children,
-  voiceName,
   onError,
   fetchAudioData,
   markColor,
@@ -69,10 +69,10 @@ const TextToSpeech = ({
 }: TTSProps) => {
   const { state, onReset, onMuted, onPlayPause, ttsChildren } = useTts({
     lang,
+    voice,
     children,
     onError,
     fetchAudioData,
-    voiceName,
     autoPlay,
     markColor,
     markBackgroundColor,
