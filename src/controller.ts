@@ -267,9 +267,6 @@ class Controller extends EventTarget {
 
   init(): void {
     if (this.target instanceof SpeechSynthesisUtterance) {
-      this.target.pitch = 1
-      this.target.rate = 0.9
-      this.target.volume = 1
       this.target.addEventListener('end', this.dispatchEnd.bind(this))
       this.target.addEventListener('start', this.dispatchPlaying.bind(this))
       this.target.addEventListener('resume', this.dispatchPlaying.bind(this))

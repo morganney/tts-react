@@ -58,7 +58,9 @@ const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
           style={{ aspectRatio: '16 / 9', width: '35%' }}
           alt="smiley face drawing"
         />
-        <figcaption>Here is an image of a smiley face canvas drawing.</figcaption>
+        <figcaption>
+          Here is an image of a smiley face drawn using the HTML canvas element.
+        </figcaption>
       </figure>
     </TextToSpeech>
   )
@@ -81,8 +83,7 @@ const Hook: ComponentStory<typeof TextToSpeech> = () => {
     children: 'Use the hook to create controls with custom styling.',
     autoPlay: false,
     markTextAsSpoken: true,
-    lang: 'es-ES'
-    //voice: voices.find((voice) => voice.lang === 'en-GB')
+    voice: voices.find((voice) => voice.lang === 'en-GB')
   })
 
   return (
@@ -96,10 +97,8 @@ const Hook: ComponentStory<typeof TextToSpeech> = () => {
   )
 }
 const StandardExample: ComponentStory<typeof TextToSpeech> = (args) => {
-  const voice = voices.find((voice) => voice.name === 'Samantha') ?? voices[0]
-
   return (
-    <TextToSpeech {...args} voice={voice} position={Positions.TL} align="vertical">
+    <TextToSpeech {...args} position={Positions.TL} align="vertical">
       <div style={{ minWidth: '300px', paddingLeft: '60px' }}>
         <p>During their day, workers in this cluster might:</p>
         <ul>
@@ -291,12 +290,12 @@ export default {
 
 export {
   StandardExample,
+  LocaleEsES,
+  Hook,
   AmazonPolly,
+  ImageText,
   Sentence,
   RandomSentence,
   RandomText,
-  LocaleEsES,
-  Hook,
-  ImageText,
   ErrorExample
 }
