@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/morganney/tts-react/actions/workflows/ci.yml/badge.svg)
 
-<img src="./tts-react.png" alt="TextToSpeech React component" style="width: 40%; aspect-ratio: 10.14;" />
+<img src="./tts-react.png" alt="TextToSpeech React component" width="375" />
 
 `tts-react` provides a hook (`useTts`) and component (`TextToSpeech`) to convert text to speech. In most cases you want the hook so you can use custom styling on the audio controls.
 
@@ -21,11 +21,12 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 |Name|Required|Type|Default|Description|
 |----|--------|----|-------|-----------|
 |children|yes|`ReactNode`|none|Provides the text that will be spoken.|
+|lang|no|`string`|The one used by [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang).|Sets the [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang). Overrides `voice` when set and `voice.lang` does not match `lang`.|
+|voice|no|`SpeechSynthesisVoice`|None or the voice provided by `audio` from `TTSAudioData`.|The voice heard when the text is spoken. Calling `set.lang` may override this value.|
 |autoPlay|no|`boolean`|`false`|Whether the audio of the text should automatically be spoken when ready.|
 |markTextAsSpoken|no|`boolean`|`false`|Whether the word being spoken should be highlighted.|
 |markColor|no|`string`|none|Color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
 |markBackgroundColor|no|`string`|none|Background color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
-|voiceName|no|`string`|`speechSynthesis.getVoices()[0]` or the voice provided by `audio` from `TTSAudioData`.|The voice heard when the text is spoken.|
 |fetchAudioData|no|`(text: string) => Promise<TTSAudioData>`|none|Function to return the optional `SpeechMarks[]` and `audio` URL for the text to be spoken. See [fetchAudioData](#fetchaudiodata) for more details.|
 |<sup>`*`</sup>allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio. Calls `onMuted` when clicked.|
 |onMuted|no|`(wasMuted: boolean) => void`|none|Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.|
@@ -41,13 +42,14 @@ The hook returns the state of the component, callbacks that can be used to contr
 
 ```ts
 const useTts = ({
+  lang,
+  voice,
   children,
+  markColor,
+  markBackgroundColor,
   onError,
   onMuted,
   fetchAudioData,
-  voiceName,
-  markColor,
-  markBackgroundColor,
   autoPlay = false,
   markTextAsSpoken = false
 }: TTSHookProps): TTSHookResponse => {
@@ -69,12 +71,14 @@ const useTts = ({
 
 interface TTSHookResponse {
   set: {
+    lang: (value: string) => void
     rate: (value: number) => void
     pitch: (value: number) => void
     volume: (value: number) => void
     preservesPitch: (value: boolean) => void
   }
   get: {
+    lang: () => string
     rate: () => number
     pitch: () => number
     volume: () => number
@@ -143,7 +147,7 @@ interface HookExampleProps extends TTSHookProps {
 }
 
 const HookExample = ({ children, highlight = false }: HookExampleProps) => {
-  const { children: ttsChildren, onPlay, onStop, onPause } = useTts({
+  const { ttsChildren, onPlay, onStop, onPause } = useTts({
     children,
     markTextAsSpoken: highlight
   })

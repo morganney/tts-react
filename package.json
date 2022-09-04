@@ -1,6 +1,6 @@
 {
   "name": "tts-react",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "React component to convert text to speech.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,6 +15,7 @@
     "check-types": "tsc --noEmit",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir dist --extensions '.ts,.tsx'",
+    "build:storybook": "npm run build && build-storybook -o demo/build -c demo/.storybook",
     "build": "npm run build:types && npm run build:js",
     "lint": "eslint . src demo --ignore-pattern dist --ext .ts,.tsx",
     "prettier": "prettier --no-error-on-unmatched-pattern --write *.ts {src,demo}/**/*.{ts,tsx}",
@@ -52,6 +53,7 @@
     "@storybook/addon-a11y": "^6.5.10",
     "@storybook/addon-actions": "^6.5.10",
     "@storybook/addon-controls": "^6.5.10",
+    "@storybook/addon-docs": "^6.5.10",
     "@storybook/react": "^6.5.10",
     "@types/jest": "^28.1.8",
     "@types/react": "^18.0.17",

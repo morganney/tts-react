@@ -15,7 +15,6 @@ if (window.speechSynthesis) {
     })
   }
 }
-
 const capitalize = (text: string) => {
   return `${text[0].toUpperCase()}${text.substring(1)}`
 }
@@ -29,9 +28,24 @@ const RandomSentence: ComponentStory<typeof TextToSpeech> = (args) => {
 }
 const Sentence: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
-    <TextToSpeech {...args} size="small" position="topLeft">
+    <TextToSpeech {...args}>
       <p>Converting text to speech with React!</p>
     </TextToSpeech>
+  )
+}
+const LocaleEsES: ComponentStory<typeof TextToSpeech> = (args) => {
+  const esVoices = voices.filter((voice) => voice.lang === 'es-ES')
+  const voice = esVoices.find((voice) => voice.name === 'Monica') ?? esVoices[0]
+
+  return (
+    <>
+      <p>
+        The <code>lang</code> prop only works for SpeechSynthesis.
+      </p>
+      <TextToSpeech {...args} lang="es-ES" voice={voice}>
+        <p>¿Hola, cómo estás hoy?</p>
+      </TextToSpeech>
+    </>
   )
 }
 const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
@@ -43,7 +57,9 @@ const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
           style={{ aspectRatio: '16 / 9', width: '35%' }}
           alt="smiley face drawing"
         />
-        <figcaption>Here is an image of a smiley face canvas drawing.</figcaption>
+        <figcaption>
+          Here is an image of a smiley face drawn using the HTML canvas element.
+        </figcaption>
       </figure>
     </TextToSpeech>
   )
@@ -61,12 +77,10 @@ const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const Hook: ComponentStory<typeof TextToSpeech> = () => {
+const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
   const { ttsChildren, onPlay, onPause, onReset, onStop } = useTts({
-    children: 'Use the hook to create controls with custom styling.',
-    autoPlay: false,
-    markTextAsSpoken: true,
-    voiceName: 'Alex'
+    ...args,
+    children: 'Use the hook to create controls with custom styling.'
   })
 
   return (
@@ -79,9 +93,23 @@ const Hook: ComponentStory<typeof TextToSpeech> = () => {
     </div>
   )
 }
+Hook.argTypes = {
+  size: {
+    control: false
+  },
+  align: {
+    control: false
+  },
+  position: {
+    control: false
+  },
+  allowMuting: {
+    control: false
+  }
+}
 const StandardExample: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
-    <TextToSpeech {...args} voiceName="Samantha" position={Positions.TL} align="vertical">
+    <TextToSpeech {...args} position={Positions.TL} align="vertical">
       <div style={{ minWidth: '300px', paddingLeft: '60px' }}>
         <p>During their day, workers in this cluster might:</p>
         <ul>
@@ -196,7 +224,7 @@ const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
 }
 
 StandardExample.argTypes = {
-  voiceName: {
+  voice: {
     control: false
   },
   position: {
@@ -207,7 +235,7 @@ StandardExample.argTypes = {
   }
 }
 AmazonPolly.argTypes = {
-  voiceName: {
+  voice: {
     control: false
   }
 }
@@ -226,11 +254,16 @@ export default {
     markBackgroundColor: '#55AD66'
   },
   argTypes: {
-    voiceName: {
-      options: voices.length ? voices.map((voice) => voice.name) : ['Alex', 'Samantha'],
+    lang: {
+      options: voices.length
+        ? voices.map((voice) => voice.lang)
+        : ['en-US', 'es-ES', 'en-GB', 'de-DE', 'it-IT', 'zh-HK'],
       control: {
         type: 'select'
       }
+    },
+    voice: {
+      control: false
     },
     fetchAudioData: {
       control: false
@@ -267,11 +300,12 @@ export default {
 
 export {
   StandardExample,
+  LocaleEsES,
+  Hook,
   AmazonPolly,
+  ImageText,
   Sentence,
   RandomSentence,
   RandomText,
-  Hook,
-  ImageText,
   ErrorExample
 }

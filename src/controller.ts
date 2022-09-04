@@ -35,7 +35,8 @@ interface CustomErrorEventListener {
 }
 interface ControllerOptions {
   text: string
-  name?: string
+  lang?: string
+  voice?: SpeechSynthesisVoice
   dispatchBoundaries?: boolean
   fetchAudioData?: FetchAudioData
 }
@@ -50,11 +51,13 @@ class Controller extends EventTarget {
   protected fetchAudioData: FetchAudioData
   protected marks: PollySpeechMark[] = []
   protected previousVolume = 1
+  protected locale = ''
 
   constructor(options: ControllerOptions) {
     super()
 
     this.text = options.text
+    this.locale = options?.lang ?? this.locale
     this.synthesizer = window.speechSynthesis
     this.target = new SpeechSynthesisUtterance(options.text)
     this.fetchAudioData = async () => ({ audio: '', marks: [] })
@@ -64,27 +67,30 @@ class Controller extends EventTarget {
       this.target = this.synthesizer = new Audio()
       this.fetchAudioData = options.fetchAudioData
     } else {
-      this.initWebSpeechVoice(options.name)
+      this.initWebSpeechVoice(options.voice)
 
       if ('onvoiceschanged' in window.speechSynthesis) {
         window.speechSynthesis.addEventListener('voiceschanged', () => {
-          this.initWebSpeechVoice(options.name)
+          this.initWebSpeechVoice(options.voice)
         })
       }
     }
   }
 
-  protected initWebSpeechVoice(name?: string): void {
+  protected initWebSpeechVoice(voice?: SpeechSynthesisVoice): void {
     if (this.target instanceof SpeechSynthesisUtterance) {
-      const voices = window.speechSynthesis.getVoices()
+      let voices = window.speechSynthesis.getVoices()
 
-      this.target.voice = voices[0]
+      if (voice) {
+        this.target.voice = voice
+      }
 
-      if (name) {
-        const found = voices.find((voice) => voice.name === name)
+      if (this.locale) {
+        voices = voices.filter((voice) => voice.lang === this.locale)
+        this.target.voice = voices[0] ?? null
 
-        if (found) {
-          this.target.voice = found
+        if (voice && voice.lang === this.locale) {
+          this.target.voice = voice
         }
       }
     }
@@ -246,11 +252,21 @@ class Controller extends EventTarget {
     }
   }
 
+  get lang(): string {
+    return this.locale
+  }
+
+  set lang(value: string) {
+    if (this.target instanceof SpeechSynthesisUtterance) {
+      this.locale = value
+      this.target.lang = value
+      this.target.voice = null
+      this.initWebSpeechVoice()
+    }
+  }
+
   init(): void {
     if (this.target instanceof SpeechSynthesisUtterance) {
-      this.target.pitch = 1
-      this.target.rate = 0.9
-      this.target.volume = 1
       this.target.addEventListener('end', this.dispatchEnd.bind(this))
       this.target.addEventListener('start', this.dispatchPlaying.bind(this))
       this.target.addEventListener('resume', this.dispatchPlaying.bind(this))
@@ -258,6 +274,10 @@ class Controller extends EventTarget {
       this.target.addEventListener('error', (evt) => {
         this.dispatchError(evt.error)
       })
+
+      if (this.locale) {
+        this.target.lang = this.locale
+      }
 
       if (this.dispatchBoundaries) {
         this.target.addEventListener('boundary', (evt) => {
