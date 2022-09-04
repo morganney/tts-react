@@ -15,7 +15,6 @@ if (window.speechSynthesis) {
     })
   }
 }
-
 const capitalize = (text: string) => {
   return `${text[0].toUpperCase()}${text.substring(1)}`
 }
@@ -78,12 +77,10 @@ const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const Hook: ComponentStory<typeof TextToSpeech> = () => {
+const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
   const { ttsChildren, onPlay, onPause, onReset, onStop } = useTts({
-    children: 'Use the hook to create controls with custom styling.',
-    autoPlay: false,
-    markTextAsSpoken: true,
-    voice: voices.find((voice) => voice.lang === 'en-GB')
+    ...args,
+    children: 'Use the hook to create controls with custom styling.'
   })
 
   return (
@@ -95,6 +92,20 @@ const Hook: ComponentStory<typeof TextToSpeech> = () => {
       <div>{ttsChildren}</div>
     </div>
   )
+}
+Hook.argTypes = {
+  size: {
+    control: false
+  },
+  align: {
+    control: false
+  },
+  position: {
+    control: false
+  },
+  allowMuting: {
+    control: false
+  }
 }
 const StandardExample: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
@@ -244,16 +255,15 @@ export default {
   },
   argTypes: {
     lang: {
-      options: voices.length ? voices.map((voice) => voice.lang) : ['en-US', 'es-ES'],
+      options: voices.length
+        ? voices.map((voice) => voice.lang)
+        : ['en-US', 'es-ES', 'en-GB', 'de-DE', 'it-IT', 'zh-HK'],
       control: {
         type: 'select'
       }
     },
-    voiceName: {
-      options: voices.length ? voices.map((voice) => voice.name) : ['Alex', 'Samantha'],
-      control: {
-        type: 'select'
-      }
+    voice: {
+      control: false
     },
     fetchAudioData: {
       control: false
