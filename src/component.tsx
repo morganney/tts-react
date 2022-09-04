@@ -53,6 +53,7 @@ const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
   }
 }
 const TextToSpeech = ({
+  lang,
   children,
   voiceName,
   onError,
@@ -67,6 +68,7 @@ const TextToSpeech = ({
   markTextAsSpoken = false
 }: TTSProps) => {
   const { state, onReset, onMuted, onPlayPause, ttsChildren } = useTts({
+    lang,
     children,
     onError,
     fetchAudioData,

@@ -35,6 +35,7 @@ interface CustomErrorEventListener {
 }
 interface ControllerOptions {
   text: string
+  lang?: string
   name?: string
   dispatchBoundaries?: boolean
   fetchAudioData?: FetchAudioData
@@ -50,11 +51,13 @@ class Controller extends EventTarget {
   protected fetchAudioData: FetchAudioData
   protected marks: PollySpeechMark[] = []
   protected previousVolume = 1
+  protected locale = ''
 
   constructor(options: ControllerOptions) {
     super()
 
     this.text = options.text
+    this.locale = options?.lang ?? this.locale
     this.synthesizer = window.speechSynthesis
     this.target = new SpeechSynthesisUtterance(options.text)
     this.fetchAudioData = async () => ({ audio: '', marks: [] })
@@ -76,9 +79,14 @@ class Controller extends EventTarget {
 
   protected initWebSpeechVoice(name?: string): void {
     if (this.target instanceof SpeechSynthesisUtterance) {
-      const voices = window.speechSynthesis.getVoices()
+      let voices = window.speechSynthesis.getVoices()
+      const defaultVoice = voices[0]
 
-      this.target.voice = voices[0]
+      if (this.locale) {
+        voices = voices.filter((voice) => voice.lang === this.locale)
+      }
+
+      this.target.voice = voices[0] ?? defaultVoice
 
       if (name) {
         const found = voices.find((voice) => voice.name === name)
@@ -246,6 +254,18 @@ class Controller extends EventTarget {
     }
   }
 
+  get lang(): string {
+    return this.locale
+  }
+
+  set lang(value: string) {
+    if (this.target instanceof SpeechSynthesisUtterance) {
+      this.locale = value
+      this.target.lang = value
+      this.initWebSpeechVoice()
+    }
+  }
+
   init(): void {
     if (this.target instanceof SpeechSynthesisUtterance) {
       this.target.pitch = 1
@@ -258,6 +278,10 @@ class Controller extends EventTarget {
       this.target.addEventListener('error', (evt) => {
         this.dispatchError(evt.error)
       })
+
+      if (this.locale) {
+        this.target.lang = this.locale
+      }
 
       if (this.dispatchBoundaries) {
         this.target.addEventListener('boundary', (evt) => {

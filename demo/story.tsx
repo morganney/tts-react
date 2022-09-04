@@ -29,8 +29,17 @@ const RandomSentence: ComponentStory<typeof TextToSpeech> = (args) => {
 }
 const Sentence: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
-    <TextToSpeech {...args} size="small" position="topLeft">
+    <TextToSpeech {...args}>
       <p>Converting text to speech with React!</p>
+    </TextToSpeech>
+  )
+}
+const Locale: ComponentStory<typeof TextToSpeech> = (args) => {
+  return (
+    <TextToSpeech {...args} lang="en-GB">
+      <p>
+        The <code>lang</code> prop only works for SpeechSynthesis.
+      </p>
     </TextToSpeech>
   )
 }
@@ -226,6 +235,12 @@ export default {
     markBackgroundColor: '#55AD66'
   },
   argTypes: {
+    lang: {
+      options: voices.length ? voices.map((voice) => voice.lang) : ['en-US', 'es-ES'],
+      control: {
+        type: 'select'
+      }
+    },
     voiceName: {
       options: voices.length ? voices.map((voice) => voice.name) : ['Alex', 'Samantha'],
       control: {
@@ -271,6 +286,7 @@ export {
   Sentence,
   RandomSentence,
   RandomText,
+  Locale,
   Hook,
   ImageText,
   ErrorExample

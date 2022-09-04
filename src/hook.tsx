@@ -24,13 +24,14 @@ interface MarkStyles {
   markBackgroundColor?: string
 }
 interface TTSHookProps extends MarkStyles {
+  lang?: ControllerOptions['lang']
   autoPlay?: boolean
   children: ReactNode
   markTextAsSpoken?: boolean
   onMuted?: (muted: boolean) => void
   onError?: (errorMsg: string) => void
   fetchAudioData?: ControllerOptions['fetchAudioData']
-  voiceName?: string
+  voiceName?: ControllerOptions['name']
 }
 interface TTSHookState {
   boundary: TTSBoundaryUpdate
@@ -55,12 +56,14 @@ interface Action {
 }
 interface TTSHookResponse {
   set: {
+    lang: (value: string) => void
     rate: (value: number) => void
     pitch: (value: number) => void
     volume: (value: number) => void
     preservesPitch: (value: boolean) => void
   }
   get: {
+    lang: () => string
     rate: () => number
     pitch: () => number
     volume: () => number
@@ -189,6 +192,7 @@ const reducer = (state: TTSHookState, action: Action): TTSHookState => {
   }
 }
 const useTts = ({
+  lang,
   children,
   onError,
   onMuted,
@@ -222,12 +226,13 @@ const useTts = ({
   const controller = useMemo(
     () =>
       new Controller({
+        lang,
         fetchAudioData,
         text: spokenText,
         name: voiceName,
         dispatchBoundaries: markTextAsSpoken
       }),
-    [fetchAudioData, spokenText, voiceName, markTextAsSpoken]
+    [lang, fetchAudioData, spokenText, voiceName, markTextAsSpoken]
   )
   const onPlay = useCallback(() => {
     if (state.isPaused) {
@@ -271,6 +276,9 @@ const useTts = ({
   const [get, set] = useMemo(
     () => [
       {
+        lang() {
+          return controller.lang
+        },
         rate() {
           return controller.rate
         },
@@ -285,6 +293,9 @@ const useTts = ({
         }
       },
       {
+        lang(value: string) {
+          controller.lang = value
+        },
         rate(value: number) {
           controller.rate = value
         },

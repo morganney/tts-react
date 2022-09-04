@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/morganney/tts-react/actions/workflows/ci.yml/badge.svg)
 
-<img src="./tts-react.png" alt="TextToSpeech React component" style="width: 40%; aspect-ratio: 10.14;" />
+<img src="./tts-react.png" alt="TextToSpeech React component" width="375" />
 
 `tts-react` provides a hook (`useTts`) and component (`TextToSpeech`) to convert text to speech. In most cases you want the hook so you can use custom styling on the audio controls.
 
@@ -21,6 +21,7 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 |Name|Required|Type|Default|Description|
 |----|--------|----|-------|-----------|
 |children|yes|`ReactNode`|none|Provides the text that will be spoken.|
+|lang|no|`string`|none|Sets the [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang). Also sets the associated [`SpeechSynthesisUtterance.voice`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/voice).|
 |autoPlay|no|`boolean`|`false`|Whether the audio of the text should automatically be spoken when ready.|
 |markTextAsSpoken|no|`boolean`|`false`|Whether the word being spoken should be highlighted.|
 |markColor|no|`string`|none|Color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
@@ -41,6 +42,7 @@ The hook returns the state of the component, callbacks that can be used to contr
 
 ```ts
 const useTts = ({
+  lang,
   children,
   onError,
   onMuted,
@@ -69,12 +71,14 @@ const useTts = ({
 
 interface TTSHookResponse {
   set: {
+    lang: (value: string) => void
     rate: (value: number) => void
     pitch: (value: number) => void
     volume: (value: number) => void
     preservesPitch: (value: boolean) => void
   }
   get: {
+    lang: () => string
     rate: () => number
     pitch: () => number
     volume: () => number
@@ -143,7 +147,7 @@ interface HookExampleProps extends TTSHookProps {
 }
 
 const HookExample = ({ children, highlight = false }: HookExampleProps) => {
-  const { children: ttsChildren, onPlay, onStop, onPause } = useTts({
+  const { ttsChildren, onPlay, onStop, onPause } = useTts({
     children,
     markTextAsSpoken: highlight
   })
