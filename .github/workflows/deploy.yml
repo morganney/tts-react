@@ -1,0 +1,45 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+      - name: Setup Node
+        uses: actions/setup-node@v3.4.1
+        with:
+          node-version: '16.16.0'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Save error log
+        uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
+        with:
+          name: npm-debug-log-${{ hashFiles('package-lock.json') }}
+          path: npm-debug.log
+      - name: Build
+        run: npm run build:storybook
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4.4.0
+        with:
+          branch: gh-pages
+          folder: demo/build
+  fail:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Print error message
+      - run: echo 'CI failed, skipping Deploy.'
