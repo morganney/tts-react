@@ -48,6 +48,16 @@ const LocaleEsES: ComponentStory<typeof TextToSpeech> = (args) => {
     </>
   )
 }
+const UseStopOverPause: ComponentStory<typeof TextToSpeech> = (args) => {
+  return (
+    <TextToSpeech {...args} useStopOverPause>
+      <p>
+        On Android <code>SpeechSynthesis.pause()</code> behaves like <code>cancel()</code>
+        .
+      </p>
+    </TextToSpeech>
+  )
+}
 const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args} position={Positions.TL}>
@@ -92,20 +102,6 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
       <div>{ttsChildren}</div>
     </div>
   )
-}
-Hook.argTypes = {
-  size: {
-    control: false
-  },
-  align: {
-    control: false
-  },
-  position: {
-    control: false
-  },
-  allowMuting: {
-    control: false
-  }
 }
 const StandardExample: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
@@ -239,6 +235,25 @@ AmazonPolly.argTypes = {
     control: false
   }
 }
+Hook.argTypes = {
+  size: {
+    control: false
+  },
+  align: {
+    control: false
+  },
+  position: {
+    control: false
+  },
+  allowMuting: {
+    control: false
+  }
+}
+UseStopOverPause.argTypes = {
+  useStopOverPause: {
+    control: false
+  }
+}
 
 export default {
   title: 'Demo/TextToSpeech',
@@ -251,7 +266,8 @@ export default {
     position: Positions.TR,
     markTextAsSpoken: true,
     markColor: 'white',
-    markBackgroundColor: '#55AD66'
+    markBackgroundColor: '#55AD66',
+    useStopOverPause: /android/i.test(navigator?.userAgent)
   },
   argTypes: {
     lang: {
@@ -304,6 +320,7 @@ export {
   Hook,
   AmazonPolly,
   ImageText,
+  UseStopOverPause,
   Sentence,
   RandomSentence,
   RandomText,

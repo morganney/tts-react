@@ -1,6 +1,6 @@
 {
   "name": "tts-react",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "React component to convert text to speech.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,6 +12,7 @@
     "url": "https://github.com/morganney/tts-react/issues"
   },
   "scripts": {
+    "test": "jest",
     "check-types": "tsc --noEmit",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir dist --extensions '.ts,.tsx'",
@@ -20,7 +21,6 @@
     "lint": "eslint . src demo --ignore-pattern dist --ext .ts,.tsx",
     "prettier": "prettier --no-error-on-unmatched-pattern --write *.ts {src,demo}/**/*.{ts,tsx}",
     "demo": "npm run build && start-storybook -c demo/.storybook -p 3000",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "prepack": "npm run build"
   },
   "engines": {
@@ -55,18 +55,18 @@
     "@storybook/addon-controls": "^6.5.10",
     "@storybook/addon-docs": "^6.5.10",
     "@storybook/react": "^6.5.10",
-    "@types/jest": "^28.1.8",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
+    "babel-jest": "^29.0.2",
     "circular-dependency-plugin": "^5.2.2",
     "codecov": "^3.8.3",
     "eslint": "^8.23.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-react": "^7.31.1",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "jest": "^29.0.1",
+    "jest": "^29.0.2",
     "prettier": "^2.7.1",
     "typescript": "4.7.4"
   }

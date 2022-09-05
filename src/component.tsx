@@ -6,6 +6,7 @@ import type { TTSHookProps } from './hook'
 import { iconSizes, Sizes } from './icons'
 import type { SvgProps } from './icons'
 import { Control, padding as ctrlPadding } from './control'
+import type { ControlProps } from './control'
 
 enum Positions {
   TL = 'topLeft',
@@ -18,6 +19,7 @@ interface TTSProps extends TTSHookProps {
   size?: SvgProps['size']
   position?: `${Positions}`
   allowMuting?: boolean
+  useStopOverPause?: boolean
 }
 type ControlsProps = Required<Pick<TTSProps, 'align' | 'position' | 'size'>>
 
@@ -65,9 +67,10 @@ const TextToSpeech = ({
   size = Sizes.MEDIUM,
   align = 'horizontal',
   position = Positions.TR,
-  markTextAsSpoken = false
+  markTextAsSpoken = false,
+  useStopOverPause = false
 }: TTSProps) => {
-  const { state, onReset, onMuted, onPlayPause, ttsChildren } = useTts({
+  const { state, onReset, onMuted, onPlayPause, onPlayStop, ttsChildren } = useTts({
     lang,
     voice,
     children,
@@ -83,6 +86,17 @@ const TextToSpeech = ({
     () => controls({ align, position, size }),
     [align, position, size]
   )
+  const [type, title, onClick] = useMemo(() => {
+    if (state.isPlaying) {
+      if (useStopOverPause) {
+        return ['stop', 'Stop', onPlayStop]
+      }
+
+      return ['pause', 'Pause', onPlayPause]
+    }
+
+    return ['play', 'Play', onPlayPause]
+  }, [state.isPlaying, useStopOverPause, onPlayStop, onPlayPause])
 
   return (
     <div style={wrapStyle} className="tts-react">
@@ -99,9 +113,9 @@ const TextToSpeech = ({
             />
           )}
           <Control
-            type={state.isPlaying ? 'pause' : 'play'}
-            title={state.isPlaying ? 'Pause' : 'Play'}
-            onClick={onPlayPause}
+            type={type as ControlProps['type']}
+            title={title}
+            onClick={onClick}
             size={size}
           />
           {state.isPaused && (
