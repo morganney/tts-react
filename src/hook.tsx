@@ -76,6 +76,7 @@ interface TTSHookResponse {
   onPause: () => void
   onReset: () => void
   onMuted: () => void
+  onPlayStop: () => void
   onPlayPause: () => void
   ttsChildren: ReactNode
 }
@@ -273,6 +274,10 @@ const useTts = ({
     () => (state.isPlaying ? onPause : onPlay),
     [state.isPlaying, onPause, onPlay]
   )
+  const onPlayStop = useMemo(
+    () => (state.isPlaying ? onStop : onPlay),
+    [state.isPlaying, onStop, onPlay]
+  )
   const [get, set] = useMemo(
     () => [
       {
@@ -370,6 +375,7 @@ const useTts = ({
     onStop,
     onPause,
     onReset,
+    onPlayStop,
     onPlayPause,
     onMuted: onMutedHandler
   }

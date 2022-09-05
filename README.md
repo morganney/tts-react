@@ -126,6 +126,7 @@ interface TTSHookResponse {
   onPause: () => void
   onReset: () => void
   onMuted: () => void
+  onPlayStop: () => void
   onPlayPause: () => void
   ttsChildren: ReactNode
 }
@@ -167,7 +168,7 @@ interface TTSAudioData {
   marks?: PollySpeechMark[]
 }
 ```
-The `audio` property must be a URL that can be applied to [`HTMLAudioElement.src`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#attr-src), including a [data URL](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs). If using `markTextAsSpoken` then you must also return the `marks` that describe the word boundaries. `SpeechMarks` have the same shape as the [Speech Marks used by Amazon Polly](https://docs.aws.amazon.com/polly/latest/dg/speechmarks.html), with the restriction that they must be of `type: 'word'`.
+The `audio` property must be a URL that can be applied to [`HTMLAudioElement.src`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#attr-src), including a [data URL](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs). If using `markTextAsSpoken` then you must also return the `marks` that describe the word boundaries. `PollySpeechMarks` have the same shape as the [Speech Marks used by Amazon Polly](https://docs.aws.amazon.com/polly/latest/dg/speechmarks.html), with the restriction that they must be of `type: 'word'`.
 
 
 ## Props
@@ -192,5 +193,19 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 |<sup>`*`</sup>align|no|`'horizontal' \| 'vertical'`|`'horizontal'`|How to align the controls within the `TextToSpeech` component.|
 |<sup>`*`</sup>size|no|`'small' \| 'medium' \| 'large'`|`'medium'`|The relative size of the controls within the `TextToSpeech` component.|
 |<sup>`*`</sup>position|no|`'topRight' \| 'topLeft' \| 'bottomRight' \| 'bottomLeft'`|`'topRight'`|The relative positioning of the controls within the `TextToSpeech` component.|
+|<sup>`*`</sup>useStopOverPause|no|`boolean`|`false`|Whether the controls should display a stop button instead of a pause button. On Android devices, `SpeechSynthesis.pause()` behaves like `cancel()`, so you can use this prop in that context.|
 
 
+## FAQs
+
+<details>
+<summary>Why does <code>markTextAsSpoken</code> not work on Chrome for Android?</summary>
+<p>This is a known issue by the Chromium team that apparently they are <a href="https://bugs.chromium.org/p/chromium/issues/detail?id=521666#c7" target="_blank">not going to fix</a>. You can use <code>fetchAudioData</code> to fallback to the <code>HTMLAudioElement</code>, or try a different browser.</p>
+</details>
+
+<details>
+<summary>Why can I not pause the audio when using <code>SpeechSynthesis</code> on Firefox and Chrome for Android?</summary>
+<p>See the compat table on MDN for <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis/pause#browser_compatibility" target="_blank">SpeechSynthesis.pause()</a>.</p>
+<p><blockquote>In Android, pause() ends the current utterance. pause() behaves the same as cancel().</blockquote></p>
+<p>You can use the hook <code>useTts</code> to build custom controls that <strong>do not</strong> expose a pause, but only stop. If using the <code>TextToSpeech</code> component use the <code>useStopOverPause</code> prop for Android devices.</p>
+</details>

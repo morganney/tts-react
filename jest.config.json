@@ -1,0 +1,20 @@
+{
+  "collectCoverage": true,
+  "collectCoverageFrom": [
+    "**/src/**/*.ts",
+    "**/src/**/*.tsx",
+    "!**/node_modules/**"
+  ],
+  "coverageReporters": [
+    "json",
+    "lcov",
+    "text",
+    "clover",
+    "text-summary"
+  ],
+  "modulePathIgnorePatterns": ["dist"],
+  "testMatch": [
+    "**/__tests__/**/*.ts",
+    "**/__tests__/**/*.tsx"
+  ]
+}

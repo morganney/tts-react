@@ -57,3 +57,4 @@ const Control = ({ title, type, onClick, size = Sizes.MEDIUM }: ControlProps) =>
 }
 
 export { Control, padding }
+export type { ControlProps }
