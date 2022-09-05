@@ -12,6 +12,10 @@ By default `tts-react` uses the [`SpeechSynthesis`](https://developer.mozilla.or
 
 `npm i react react-dom tts-react`
 
+## Documentation
+
+[morganney.github.io/tts-react](https://morganney.github.io/tts-react/)
+
 ## Example
 
 #### Hook
