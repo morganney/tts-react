@@ -12,33 +12,64 @@ By default `tts-react` uses the [`SpeechSynthesis`](https://developer.mozilla.or
 
 `npm i react react-dom tts-react`
 
-## Props
+## Example
 
-Most of these are supported by the `useTts` hook, but those marked with an asterisk are exclusive to the `TextToSpeech` component.
+#### Hook
 
-<sub>`*` Only applies to `TextToSpeech` component.</sub>
+```ts
+import { useTts } from 'tts-react'
+import type { TTSHookProps } from 'tts-react'
 
-|Name|Required|Type|Default|Description|
-|----|--------|----|-------|-----------|
-|children|yes|`ReactNode`|none|Provides the text that will be spoken.|
-|lang|no|`string`|The one used by [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang).|Sets the [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang). Overrides `voice` when set and `voice.lang` does not match `lang`.|
-|voice|no|`SpeechSynthesisVoice`|None or the voice provided by `audio` from `TTSAudioData`.|The voice heard when the text is spoken. Calling `set.lang` may override this value.|
-|autoPlay|no|`boolean`|`false`|Whether the audio of the text should automatically be spoken when ready.|
-|markTextAsSpoken|no|`boolean`|`false`|Whether the word being spoken should be highlighted.|
-|markColor|no|`string`|none|Color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
-|markBackgroundColor|no|`string`|none|Background color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
-|fetchAudioData|no|`(text: string) => Promise<TTSAudioData>`|none|Function to return the optional `SpeechMarks[]` and `audio` URL for the text to be spoken. See [fetchAudioData](#fetchaudiodata) for more details.|
-|<sup>`*`</sup>allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio. Calls `onMuted` when clicked.|
-|onMuted|no|`(wasMuted: boolean) => void`|none|Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.|
-|onError|no|`(evt: CustomEvent<string>) => void`|none|Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided in `evt.detail`.|
-|<sup>`*`</sup>align|no|`'horizontal' \| 'vertical'`|`'horizontal'`|How to align the controls within the `TextToSpeech` component.|
-|<sup>`*`</sup>size|no|`'small' \| 'medium' \| 'large'`|`'medium'`|The relative size of the controls within the `TextToSpeech` component.|
-|<sup>`*`</sup>position|no|`'topRight' \| 'topLeft' \| 'bottomRight' \| 'bottomLeft'`|`'topRight'`|The relative positioning of the controls within the `TextToSpeech` component.|
+interface HookExampleProps extends TTSHookProps {
+  highlight?: boolean
+}
 
+const HookExample = ({ children, highlight = false }: HookExampleProps) => {
+  const { ttsChildren, state, onPlay, onStop, onPause } = useTts({
+    children,
+    markTextAsSpoken: highlight
+  })
+
+  return (
+    <div>
+      {state.isReady && (
+        <>
+          <button onClick={onPlay}>Play</button>
+          <button onClick={onPause}>Pause</button>
+          <button onClick={onStop}>Stop</button>
+        </>
+      )}
+      {ttsChildren}
+    </div>
+  )
+}
+
+const App = () => {
+  return <HookExample highlight>Some text to be spoken.</HookExample>
+}
+```
+
+#### Component
+
+```ts
+import { TextToSpeech, Positions, Sizes } from 'tts-react'
+
+const App = () => {
+  return (
+    <TextToSpeech
+      markTextAsSpoken
+      align="vertical"
+      size={Sizes.SMALL}
+      position={Positions.TL}>
+      <p>Some text to be spoken.</p>
+    </TextToSpeech>
+  )
+}
+```
 
 ## `useTts`
 
-The hook returns the state of the component, callbacks that can be used to control playing, stopping, pausing, etc. of the audio, and modified `children` if using `markTextAsSpoken`. The parameters accepted are described above in the [Props](#props) section. The response object is described by the `TTSHookResponse` type.
+The hook returns the internal state of the audio being spoken, getters/setters of audio attributes, callbacks that can be used to control playing/stopping/pausing/etc. of the audio, and modified `children` if using `markTextAsSpoken`. The parameters accepted are described in the [Props](#props) section. The response object is described by the `TTSHookResponse` type.
 
 ```ts
 const useTts = ({
@@ -134,53 +165,28 @@ interface TTSAudioData {
 ```
 The `audio` property must be a URL that can be applied to [`HTMLAudioElement.src`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#attr-src), including a [data URL](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs). If using `markTextAsSpoken` then you must also return the `marks` that describe the word boundaries. `SpeechMarks` have the same shape as the [Speech Marks used by Amazon Polly](https://docs.aws.amazon.com/polly/latest/dg/speechmarks.html), with the restriction that they must be of `type: 'word'`.
 
-## Examples
 
-#### Hook
+## Props
 
-```ts
-import { useTts } from 'tts-react'
-import type { TTSHookProps } from 'tts-react'
+Most of these are supported by the `useTts` hook, but those marked with an asterisk are exclusive to the `TextToSpeech` component.
 
-interface HookExampleProps extends TTSHookProps {
-  highlight?: boolean
-}
+<sub>`*` Only applies to `TextToSpeech` component.</sub>
 
-const HookExample = ({ children, highlight = false }: HookExampleProps) => {
-  const { ttsChildren, onPlay, onStop, onPause } = useTts({
-    children,
-    markTextAsSpoken: highlight
-  })
+|Name|Required|Type|Default|Description|
+|----|--------|----|-------|-----------|
+|children|yes|`ReactNode`|none|Provides the text that will be spoken.|
+|lang|no|`string`|The one used by [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang).|Sets the [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang). Overrides `voice` when set and `voice.lang` does not match `lang`.|
+|voice|no|`SpeechSynthesisVoice`|None or the voice provided by `audio` from `TTSAudioData`.|The voice heard when the text is spoken. Calling `set.lang` may override this value.|
+|autoPlay|no|`boolean`|`false`|Whether the audio of the text should automatically be spoken when ready.|
+|markTextAsSpoken|no|`boolean`|`false`|Whether the word being spoken should be highlighted.|
+|markColor|no|`string`|none|Color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
+|markBackgroundColor|no|`string`|none|Background color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
+|fetchAudioData|no|`(text: string) => Promise<TTSAudioData>`|none|Function to return the optional `SpeechMarks[]` and `audio` URL for the text to be spoken. See [fetchAudioData](#fetchaudiodata) for more details.|
+|<sup>`*`</sup>allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio. Calls `onMuted` when clicked.|
+|onMuted|no|`(wasMuted: boolean) => void`|none|Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.|
+|onError|no|`(evt: CustomEvent<string>) => void`|none|Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided in `evt.detail`.|
+|<sup>`*`</sup>align|no|`'horizontal' \| 'vertical'`|`'horizontal'`|How to align the controls within the `TextToSpeech` component.|
+|<sup>`*`</sup>size|no|`'small' \| 'medium' \| 'large'`|`'medium'`|The relative size of the controls within the `TextToSpeech` component.|
+|<sup>`*`</sup>position|no|`'topRight' \| 'topLeft' \| 'bottomRight' \| 'bottomLeft'`|`'topRight'`|The relative positioning of the controls within the `TextToSpeech` component.|
 
-  return (
-    <div>
-      <button onClick={onPlay}>Play</button>
-      <button onClick={onPause}>Pause</button>
-      <button onClick={onStop}>Stop</button>
-      {ttsChildren}
-    </div>
-  )
-}
 
-const App = () => {
-  return <HookExample highlight>Some text to be spoken.</HookExample>
-}
-```
-
-#### Component
-
-```ts
-import { TextToSpeech, Positions, Sizes } from 'tts-react'
-
-const App = () => {
-  return (
-    <TextToSpeech
-      markTextAsSpoken
-      align="vertical"
-      size={Sizes.SMALL}
-      position={Positions.TL}>
-      <p>Some text to be spoken.</p>
-    </TextToSpeech>
-  )
-}
-```
