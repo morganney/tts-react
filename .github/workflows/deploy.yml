@@ -1,16 +1,14 @@
-name: CI
+name: Deploy
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - dev
 
+permissions:
+  contents: write
 jobs:
-  ci:
-    name: CI
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,13 +17,6 @@ jobs:
         uses: actions/setup-node@v3.4.1
         with:
           node-version: '16.16.0'
-      - name: Cache
-        uses: actions/cache@v2.1.6
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
       - name: Install Dependencies
         run: npm ci
       - name: Save error log
@@ -34,7 +25,10 @@ jobs:
         with:
           name: npm-debug-log-${{ hashFiles('package-lock.json') }}
           path: npm-debug.log
-      - name: Lint
-        run: npm run lint
-      - name: Pack
-        run: npm pack
+      - name: Build
+        run: npm run build:storybook
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4.4.0
+        with:
+          branch: gh-pages
+          folder: demo/build
