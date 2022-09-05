@@ -42,4 +42,4 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     steps:
       - name: Print error message
-      - run: echo 'CI failed, skipping Deploy.'
+        run: echo 'CI failed, skipping Deploy.'
