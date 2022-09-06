@@ -25,6 +25,8 @@ jobs:
           path: npm-debug.log
       - name: Lint
         run: npm run lint
+      - name: Test
+        run: npm test
       - name: Push to NPM registry
         uses: JS-DevTools/npm-publish@v1.4.3
         with:

@@ -13,6 +13,7 @@
     "text-summary"
   ],
   "modulePathIgnorePatterns": ["dist"],
+  "testEnvironment": "jest-environment-jsdom",
   "testMatch": [
     "**/__tests__/**/*.ts",
     "**/__tests__/**/*.tsx"

@@ -2,7 +2,7 @@ import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import { faker } from '@faker-js/faker'
 
 import { audiosrc, imgsrc } from './assets'
-import { TextToSpeech, Positions, Sizes, useTts } from '../dist'
+import { TextToSpeech, Positions, Sizes, useTts } from '../src'
 
 let voices: SpeechSynthesisVoice[] = []
 
