@@ -58,11 +58,12 @@ const Languages: ComponentStory<typeof TextToSpeech> = (args) => {
         the <code>&lt;html&nbsp;lang&gt;</code> value, or the user agent&apos;s default.
       </p>
       <label>
-        Select a lang (locale):&nbsp;
         <select
+          value={lang}
           onChange={(evt) => {
             setLang(voices.find((voice) => voice.lang === evt.target.value)?.lang)
           }}>
+          <option>-- Select a locale --</option>
           {locales.map((locale) => (
             <option key={locale}>{locale}</option>
           ))}
@@ -149,14 +150,15 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
       {voices.length > 0 ? (
         <>
           <label>
-            Select a voice:&nbsp;
             <select
+              value={voice?.name}
               onChange={(evt) => {
                 setVoice(voices.find((voice) => voice.name === evt.target.value))
               }}>
-              {voices.map((voice) => (
-                <option key={voice.name} value={voice.name}>
-                  {voice.name} [{voice.lang}]
+              <option>-- Select a voice --</option>
+              {voices.map(({ name, lang }) => (
+                <option key={name} value={name}>
+                  {name} [{lang}]
                 </option>
               ))}
             </select>

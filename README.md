@@ -93,6 +93,7 @@ const useTts = ({
     get,
     set,
     state,
+    voices,
     spokenText,
     ttsChildren,
     onPlay,

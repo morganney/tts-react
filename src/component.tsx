@@ -23,7 +23,7 @@ interface TTSProps extends TTSHookProps {
   position?: `${Positions}`
   /** Whether the `TextToSpeech` component should render the audio toggling control. */
   allowMuting?: boolean
-  /** Whether the `TextToSpeech` should render a stop control instead of pause. */
+  /** Whether the `TextToSpeech` component should render a stop control instead of pause. */
   useStopOverPause?: boolean
 }
 type ControlsProps = Required<Pick<TTSProps, 'align' | 'position' | 'size'>>
