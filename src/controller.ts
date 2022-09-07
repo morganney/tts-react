@@ -50,7 +50,6 @@ class Controller extends EventTarget {
   protected readonly dispatchBoundaries: boolean = false
   protected fetchAudioData: FetchAudioData
   protected marks: PollySpeechMark[] = []
-  protected previousVolume = 1
   protected locale = ''
 
   constructor(options: ControllerOptions) {
@@ -349,7 +348,6 @@ class Controller extends EventTarget {
   }
 
   mute(): void {
-    this.previousVolume = this.volume
     this.volume = 0
 
     /**
@@ -365,8 +363,8 @@ class Controller extends EventTarget {
     }
   }
 
-  unmute(): void {
-    this.volume = this.previousVolume ?? 1
+  unmute(volume?: number): void {
+    this.volume = volume ?? 1
 
     if (!(this.synthesizer instanceof HTMLAudioElement)) {
       this.clear()
