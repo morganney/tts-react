@@ -33,7 +33,7 @@ const Sentence: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const LocaleEsES: ComponentStory<typeof TextToSpeech> = (args) => {
+const LangLocale: ComponentStory<typeof TextToSpeech> = (args) => {
   const esVoices = voices.filter((voice) => voice.lang === 'es-ES')
   const voice = esVoices.find((voice) => voice.name === 'Monica') ?? esVoices[0]
 
@@ -48,12 +48,13 @@ const LocaleEsES: ComponentStory<typeof TextToSpeech> = (args) => {
     </>
   )
 }
-const UseStopOverPause: ComponentStory<typeof TextToSpeech> = (args) => {
+const Android: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args} useStopOverPause>
       <p>
         On Android <code>SpeechSynthesis.pause()</code> behaves like <code>cancel()</code>
-        .
+        . <code>useStopOverPause</code> changes the component&apos;s pause control to a
+        stop as shown here.
       </p>
     </TextToSpeech>
   )
@@ -90,20 +91,22 @@ const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
 const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
   const { ttsChildren, onPlay, onPause, onReset, onStop } = useTts({
     ...args,
-    children: 'Use the hook to create controls with custom styling.'
+    children: 'The hook can be used to create custom controls.'
   })
 
   return (
-    <div>
-      <button onClick={onPlay}>Play</button>
-      <button onClick={onPause}>Pause</button>
-      <button onClick={onStop}>Stop</button>
-      <button onClick={onReset}>Reset</button>
-      <div>{ttsChildren}</div>
-    </div>
+    <>
+      <div style={{ display: 'flex', gap: '5px' }}>
+        <button onClick={onPlay}>Play</button>
+        <button onClick={onPause}>Pause</button>
+        <button onClick={onStop}>Stop</button>
+        <button onClick={onReset}>Reset</button>
+      </div>
+      <p>{ttsChildren}</p>
+    </>
   )
 }
-const StandardExample: ComponentStory<typeof TextToSpeech> = (args) => {
+const Component: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args} position={Positions.TL} align="vertical">
       <div style={{ minWidth: '300px', paddingLeft: '60px' }}>
@@ -219,7 +222,7 @@ const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
   )
 }
 
-StandardExample.argTypes = {
+Component.argTypes = {
   voice: {
     control: false
   },
@@ -249,14 +252,14 @@ Hook.argTypes = {
     control: false
   }
 }
-UseStopOverPause.argTypes = {
+Android.argTypes = {
   useStopOverPause: {
     control: false
   }
 }
 
 export default {
-  title: 'Demo/TextToSpeech',
+  title: 'tts-react',
   component: TextToSpeech,
   args: {
     autoPlay: false,
@@ -315,12 +318,12 @@ export default {
 } as ComponentMeta<typeof TextToSpeech>
 
 export {
-  StandardExample,
-  LocaleEsES,
   Hook,
+  Component,
+  LangLocale,
   AmazonPolly,
   ImageText,
-  UseStopOverPause,
+  Android,
   Sentence,
   RandomSentence,
   RandomText,

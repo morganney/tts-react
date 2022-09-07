@@ -20,18 +20,28 @@ import { isStringOrNumber, stripPunctuation } from './utils'
 import { Highlighter } from './highlighter'
 
 interface MarkStyles {
+  /** Text color of the currently marked word. */
   markColor?: string
+  /** Background color of the currently marked word. */
   markBackgroundColor?: string
 }
 interface TTSHookProps extends MarkStyles {
-  lang?: ControllerOptions['lang']
-  autoPlay?: boolean
+  /** The spoken text is extracted from here. */
   children: ReactNode
-  markTextAsSpoken?: boolean
-  onMuted?: (muted: boolean) => void
-  onError?: (errorMsg: string) => void
-  fetchAudioData?: ControllerOptions['fetchAudioData']
+  /** The `SpeechSynthesisUtterance.lang` to use. */
+  lang?: ControllerOptions['lang']
+  /** The `SpeechSynthesisUtterance.voice` to use. */
   voice?: ControllerOptions['voice']
+  /** Whether the text should be spoken automatically, i.e. on render. */
+  autoPlay?: boolean
+  /** Whether the spoken word should be wrapped in a `<mark>` element. */
+  markTextAsSpoken?: boolean
+  /** Callback when the volume toggle button is clicked. */
+  onMuted?: (wasMuted: boolean) => void
+  /** Callback when there is an error of any kind. */
+  onError?: (errorMsg: string) => void
+  /** Function to fetch audio and speech marks for the spoken text. */
+  fetchAudioData?: ControllerOptions['fetchAudioData']
 }
 interface TTSHookState {
   boundary: TTSBoundaryUpdate

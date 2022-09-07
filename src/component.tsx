@@ -15,10 +15,15 @@ enum Positions {
   BR = 'bottomRight'
 }
 interface TTSProps extends TTSHookProps {
+  /** How the controls are aligned within the `TextToSpeech` component. */
   align?: 'vertical' | 'horizontal'
+  /** The relative size of the controls within the `TextToSpeech` component. */
   size?: SvgProps['size']
+  /** The relative position of the controls within the `TextToSpeech` component. */
   position?: `${Positions}`
+  /** Whether the `TextToSpeech` component should render the audio toggling control. */
   allowMuting?: boolean
+  /** Whether the `TextToSpeech` should render a stop control instead of pause. */
   useStopOverPause?: boolean
 }
 type ControlsProps = Required<Pick<TTSProps, 'align' | 'position' | 'size'>>
