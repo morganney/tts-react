@@ -131,6 +131,7 @@ interface TTSHookResponse {
   ttsChildren: ReactNode
 }
 interface TTSHookState {
+  voices: SpeechSynthesisVoice[]
   boundary: BoundaryUpdate
   isPlaying: boolean
   isPaused: boolean
@@ -197,6 +198,11 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 
 
 ## FAQs
+
+<details>
+<summary>Why does <code>markTextAsSpoken</code> sometimes highlight the wrong word?</summary>
+<p>The <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/boundary_event"><code>SpeechSynthesisUtterance</code> boundary event</a> <em>may</em> fire with skewed word boundaries for certain combinations of <code>spokenText</code> and <code>lang</code> or <code>voice</code> props. If you check the value of <code>state.boundary.word</code> in these cases, you will find the event is firing at unexpected boundaries, so there is no real solution other than to find a suitable <code>voice</code> for your given <code>spokenText</code>.</p>
+</details>
 
 <details>
 <summary>Why does <code>markTextAsSpoken</code> not work on Chrome for Android?</summary>

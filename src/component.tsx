@@ -59,6 +59,22 @@ const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
     border: '1px solid transparent'
   }
 }
+/**
+ * `useTts` is a React hook for converting text to speech using
+ * the `SpeechSynthesis` and `SpeechSynthesisUtterance` Browser API's.
+ * Optionally, you can fallback to using the `HTMLAudioElement` API
+ * when setting the `fetchAudioData` prop, for example to use Amazon Polly.
+ *
+ * `TextToSpeech` is an implementation of `useTts` that provides
+ * controls for playing, pausing/stopping, and replaying the spoken text.
+ * It also extends the props of `useTts` by supporting some of it's own:
+ *
+ * - `align`
+ * - `allowMuting`
+ * - `position`
+ * - `size`
+ * - `useStopOverPause`
+ */
 const TextToSpeech = ({
   lang,
   voice,
