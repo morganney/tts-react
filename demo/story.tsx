@@ -1,7 +1,8 @@
 import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import { faker } from '@faker-js/faker'
+import { useState, useEffect } from 'react'
 
-import { audiosrc, imgsrc } from './assets'
+import { audiosrc } from './assets'
 import { TextToSpeech, Positions, Sizes, useTts } from '../src'
 
 let voices: SpeechSynthesisVoice[] = []
@@ -33,19 +34,59 @@ const Sentence: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const LangLocale: ComponentStory<typeof TextToSpeech> = (args) => {
-  const esVoices = voices.filter((voice) => voice.lang === 'es-ES')
-  const voice = esVoices.find((voice) => voice.name === 'Monica') ?? esVoices[0]
+const Languages: ComponentStory<typeof TextToSpeech> = (args) => {
+  const toLocales = (voices: SpeechSynthesisVoice[]) =>
+    Array.from(new Set(voices.map((voice) => voice.lang)))
+  const [locales, setLocales] = useState(() =>
+    toLocales(speechSynthesis?.getVoices() ?? [])
+  )
+  const [lang, setLang] = useState<string | undefined>()
+
+  useEffect(() => {
+    if (typeof window.speechSynthesis?.addEventListener === 'function') {
+      window.speechSynthesis.addEventListener('voiceschanged', () => {
+        setLocales(toLocales(window.speechSynthesis.getVoices()))
+      })
+    }
+  }, [])
 
   return (
     <>
       <p>
-        The <code>lang</code> prop only works for SpeechSynthesis.
+        When <code>voice</code> is not set, the browser will fallback to the most suitable
+        voice for the provided <code>lang</code>. If neither is set, the default will be
+        the <code>&lt;html&nbsp;lang&gt;</code> value, or the user agent&apos;s default.
       </p>
-      <TextToSpeech {...args} lang="es-ES" voice={voice}>
-        <p>¿Hola, cómo estás hoy?</p>
+      <label>
+        Select a lang (locale):&nbsp;
+        <select
+          onChange={(evt) => {
+            setLang(voices.find((voice) => voice.lang === evt.target.value)?.lang)
+          }}>
+          {locales.map((locale) => (
+            <option key={locale}>{locale}</option>
+          ))}
+        </select>
+      </label>
+      <p style={{ marginTop: 0 }}>
+        <small>
+          <em>(Some voices may create skewed word boundaries for the given text.)</em>
+        </small>
+      </p>
+      <TextToSpeech {...args} lang={lang}>
+        The voice should sound appropriate to the selected locale.
       </TextToSpeech>
     </>
+  )
+}
+const LangES_ES: ComponentStory<typeof TextToSpeech> = (args) => {
+  const esVoices = voices.filter((voice) => voice.lang === 'es-ES')
+  const voice = esVoices.find((voice) => voice.name === 'Monica') ?? esVoices[0]
+
+  return (
+    <TextToSpeech {...args} lang="es-ES" voice={voice}>
+      <p>¿Hola, cómo estás hoy?</p>
+    </TextToSpeech>
   )
 }
 const Android: ComponentStory<typeof TextToSpeech> = (args) => {
@@ -62,15 +103,15 @@ const Android: ComponentStory<typeof TextToSpeech> = (args) => {
 const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args} position={Positions.TL}>
-      <figure>
+      <figure style={{ margin: 0, paddingTop: 60 }}>
         <img
-          src={imgsrc}
-          style={{ aspectRatio: '16 / 9', width: '35%' }}
-          alt="smiley face drawing"
+          src={
+            'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'
+          }
+          style={{ height: '92px' }}
+          alt="Google's logo"
         />
-        <figcaption>
-          Here is an image of a smiley face drawn using the HTML canvas element.
-        </figcaption>
+        <figcaption>Google is evil (some say).</figcaption>
       </figure>
     </TextToSpeech>
   )
@@ -89,13 +130,56 @@ const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
   )
 }
 const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
-  const { ttsChildren, onPlay, onPause, onReset, onStop } = useTts({
+  const [voices, setVoices] = useState(window.speechSynthesis?.getVoices() ?? [])
+  const [voice, setVoice] = useState<SpeechSynthesisVoice | undefined>()
+  const { ttsChildren, state, onPlay, onPause, onReset, onStop } = useTts({
     ...args,
+    voice,
     children: 'The hook can be used to create custom controls.'
   })
 
+  useEffect(() => {
+    if (state.voices) {
+      setVoices(state.voices)
+    }
+  }, [state.voices])
+
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+      {voices.length > 0 ? (
+        <>
+          <label>
+            Select a voice:&nbsp;
+            <select
+              onChange={(evt) => {
+                setVoice(voices.find((voice) => voice.name === evt.target.value))
+              }}>
+              {voices.map((voice) => (
+                <option key={voice.name} value={voice.name}>
+                  {voice.name} [{voice.lang}]
+                </option>
+              ))}
+            </select>
+          </label>
+          <p style={{ marginTop: 0 }}>
+            <small>
+              <em>(Some voices may create skewed word boundaries for the given text.)</em>
+            </small>
+          </p>
+        </>
+      ) : typeof window.speechSynthesis !== 'undefined' ? (
+        <p>
+          Click&nbsp;
+          <button onClick={() => setVoices(window.speechSynthesis.getVoices())}>
+            load
+          </button>
+          &nbsp;to select speech synthesis voices.
+        </p>
+      ) : (
+        <p>
+          <strong>Your browser does not support SpeechSynthesis</strong>
+        </p>
+      )}
       <div style={{ display: 'flex', gap: '5px' }}>
         <button onClick={onPlay}>Play</button>
         <button onClick={onPause}>Pause</button>
@@ -103,7 +187,7 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
         <button onClick={onReset}>Reset</button>
       </div>
       <p>{ttsChildren}</p>
-    </>
+    </div>
   )
 }
 const Component: ComponentStory<typeof TextToSpeech> = (args) => {
@@ -216,9 +300,17 @@ const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
     })
 
   return (
-    <TextToSpeech {...args} fetchAudioData={fetchAudioData}>
-      <p>Text to be translated to speech by Polly for Story</p>
-    </TextToSpeech>
+    <>
+      <p>
+        <small>
+          You can not set the <code>voice</code> or <code>lang</code> when using{' '}
+          <code>fetchAudioData</code>.
+        </small>
+      </p>
+      <TextToSpeech {...args} fetchAudioData={fetchAudioData}>
+        <p>Text to be translated to speech by Polly for Story</p>
+      </TextToSpeech>
+    </>
   )
 }
 
@@ -234,7 +326,26 @@ Component.argTypes = {
   }
 }
 AmazonPolly.argTypes = {
+  lang: {
+    control: false
+  },
   voice: {
+    control: false
+  }
+}
+LangES_ES.argTypes = {
+  voice: {
+    control: false
+  },
+  lang: {
+    control: false
+  }
+}
+Languages.argTypes = {
+  voice: {
+    control: false
+  },
+  lang: {
     control: false
   }
 }
@@ -243,6 +354,9 @@ Hook.argTypes = {
     control: false
   },
   align: {
+    control: false
+  },
+  lang: {
     control: false
   },
   position: {
@@ -284,6 +398,9 @@ export default {
     voice: {
       control: false
     },
+    children: {
+      control: false
+    },
     fetchAudioData: {
       control: false
     },
@@ -320,7 +437,8 @@ export default {
 export {
   Hook,
   Component,
-  LangLocale,
+  Languages,
+  LangES_ES,
   AmazonPolly,
   ImageText,
   Android,

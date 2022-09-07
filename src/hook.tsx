@@ -44,6 +44,7 @@ interface TTSHookProps extends MarkStyles {
   fetchAudioData?: ControllerOptions['fetchAudioData']
 }
 interface TTSHookState {
+  voices: SpeechSynthesisVoice[]
   boundary: TTSBoundaryUpdate
   isPlaying: boolean
   isPaused: boolean
@@ -62,7 +63,8 @@ interface Action {
     | 'error'
     | 'muted'
     | 'stop'
-  payload?: TTSBoundaryUpdate
+    | 'voices'
+  payload?: TTSBoundaryUpdate | SpeechSynthesisVoice[]
 }
 interface TTSHookResponse {
   set: {
@@ -194,6 +196,8 @@ const reducer = (state: TTSHookState, action: Action): TTSHookState => {
         ...state,
         boundary: { ...state.boundary, ...(action.payload as TTSBoundaryUpdate) }
       }
+    case 'voices':
+      return { ...state, voices: action.payload as SpeechSynthesisVoice[] }
     case 'stop':
       return { ...state, isPlaying: false, isPaused: false, isError: false }
     case 'muted':
@@ -215,6 +219,7 @@ const useTts = ({
   markTextAsSpoken = false
 }: TTSHookProps): TTSHookResponse => {
   const [state, dispatch] = useReducer(reducer, {
+    voices: window.speechSynthesis?.getVoices() ?? [],
     boundary: defaultBoundary,
     isPlaying: false,
     isPaused: false,
@@ -374,6 +379,20 @@ const useTts = ({
       controller.clear()
     }
   }, [controller, autoPlay, markTextAsSpoken, onError])
+
+  useEffect(() => {
+    const onVoicesChanged = () => {
+      dispatch({ type: 'voices', payload: window.speechSynthesis.getVoices() })
+    }
+
+    if (typeof window.speechSynthesis?.addEventListener === 'function') {
+      window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged)
+    }
+
+    return () => {
+      window.speechSynthesis?.removeEventListener('voiceschanged', onVoicesChanged)
+    }
+  }, [])
 
   return {
     get,
