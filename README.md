@@ -83,7 +83,9 @@ const useTts = ({
   markColor,
   markBackgroundColor,
   onError,
-  onMuted,
+  onVolumeChange,
+  onPitchChange,
+  onRateChange,
   fetchAudioData,
   autoPlay = false,
   markTextAsSpoken = false
@@ -93,7 +95,6 @@ const useTts = ({
     get,
     set,
     state,
-    voices,
     spokenText,
     ttsChildren,
     onPlay,
@@ -101,7 +102,7 @@ const useTts = ({
     onPause,
     onReset,
     onPlayPause,
-    onMuted: onMutedHandler
+    onToggleMute
   }
 }
 
@@ -126,7 +127,7 @@ interface TTSHookResponse {
   onStop: () => void
   onPause: () => void
   onReset: () => void
-  onMuted: () => void
+  onToggleMute: (callback?: (wasMuted: boolean) => void) => void
   onPlayStop: () => void
   onPlayPause: () => void
   ttsChildren: ReactNode
@@ -189,8 +190,8 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 |markColor|no|`string`|none|Color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
 |markBackgroundColor|no|`string`|none|Background color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
 |fetchAudioData|no|`(text: string) => Promise<TTSAudioData>`|none|Function to return the optional `SpeechMarks[]` and `audio` URL for the text to be spoken. See [fetchAudioData](#fetchaudiodata) for more details.|
-|<sup>`*`</sup>allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio. Calls `onMuted` when clicked.|
-|onMuted|no|`(wasMuted: boolean) => void`|none|Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.|
+|<sup>`*`</sup>allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio.|
+|<sup>`*`</sup>onMuteToggled|no|`(wasMuted: boolean) => void`|none|Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.|
 |onError|no|`(evt: CustomEvent<string>) => void`|none|Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided in `evt.detail`.|
 |<sup>`*`</sup>align|no|`'horizontal' \| 'vertical'`|`'horizontal'`|How to align the controls within the `TextToSpeech` component.|
 |<sup>`*`</sup>size|no|`'small' \| 'medium' \| 'large'`|`'medium'`|The relative size of the controls within the `TextToSpeech` component.|

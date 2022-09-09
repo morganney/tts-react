@@ -1,12 +1,15 @@
 import { isPunctuation } from './utils'
 
 enum Events {
+  BOUNDARY = 'boundary',
   END = 'end',
   ERROR = 'error',
-  READY = 'ready',
   PAUSED = 'paused',
+  PITCH = 'pitch',
   PLAYING = 'playing',
-  BOUNDARY = 'boundary'
+  RATE = 'rate',
+  READY = 'ready',
+  VOLUME = 'volume'
 }
 interface PollySpeechMark {
   end: number
@@ -32,6 +35,9 @@ interface CustomBoundaryEventListener {
 }
 interface CustomErrorEventListener {
   (evt: CustomEvent<string>): void
+}
+interface CustomNumberEventListener {
+  (evt: CustomEvent<number>): void
 }
 interface ControllerOptions {
   text: string
@@ -138,6 +144,18 @@ class Controller extends EventTarget {
     this.dispatchEvent(new CustomEvent(Events.BOUNDARY, { detail: boundary }))
   }
 
+  protected dispatchVolume(volume: number): void {
+    this.dispatchEvent(new CustomEvent(Events.VOLUME, { detail: volume }))
+  }
+
+  protected dispatchRate(rate: number): void {
+    this.dispatchEvent(new CustomEvent(Events.RATE, { detail: rate }))
+  }
+
+  protected dispatchPitch(pitch: number): void {
+    this.dispatchEvent(new CustomEvent(Events.PITCH, { detail: pitch }))
+  }
+
   protected async playHtmlAudio(): Promise<void> {
     const audio = this.synthesizer as HTMLAudioElement
 
@@ -178,6 +196,10 @@ class Controller extends EventTarget {
     return match ? match[0].length : 0
   }
 
+  protected clamp(value: number, min = 0, max = 1): number {
+    return Math.max(min, Math.min(value, max))
+  }
+
   get paused(): boolean {
     return this.synthesizer.paused
   }
@@ -195,12 +217,18 @@ class Controller extends EventTarget {
   }
 
   set rate(value: number) {
-    if (this.synthesizer instanceof HTMLAudioElement) {
-      this.synthesizer.playbackRate = value
-    }
+    const clamped = this.clamp(parseFloat(value.toPrecision(3)), 0.1, 10)
 
-    if (this.target instanceof SpeechSynthesisUtterance) {
-      this.target.rate = value
+    if (!Number.isNaN(clamped)) {
+      if (this.synthesizer instanceof HTMLAudioElement) {
+        this.synthesizer.playbackRate = clamped
+      }
+
+      if (this.target instanceof SpeechSynthesisUtterance) {
+        this.target.rate = clamped
+      }
+
+      this.dispatchRate(clamped)
     }
   }
 
@@ -211,9 +239,15 @@ class Controller extends EventTarget {
 
     throw new Error(`[tts-react]: can not read 'pitch' on HTMLAudioElement.`)
   }
+
   set pitch(value: number) {
     if (this.target instanceof SpeechSynthesisUtterance) {
-      this.target.pitch = value
+      const clamped = this.clamp(parseFloat(value.toPrecision(2)), 0, 2)
+
+      if (!Number.isNaN(clamped)) {
+        this.target.pitch = clamped
+        this.dispatchPitch(clamped)
+      }
     }
   }
 
@@ -222,7 +256,12 @@ class Controller extends EventTarget {
   }
 
   set volume(value: number) {
-    this.target.volume = value
+    const clamped = this.clamp(parseFloat(value.toPrecision(2)))
+
+    if (!Number.isNaN(clamped)) {
+      this.target.volume = clamped
+      this.dispatchVolume(clamped)
+    }
   }
 
   get preservesPitch(): boolean {
@@ -295,20 +334,10 @@ class Controller extends EventTarget {
     }
 
     if (this.target instanceof HTMLAudioElement) {
-      const handleCanPlay = () => {
-        this.dispatchReady()
-        /**
-         * Only dispatch ready event once per instance.
-         * The 'canplay' event will fire multiple times throughout
-         * the instances lifecycle depending on user action.
-         *
-         * We want to use this as an event to initialize the controls.
-         */
-        this.target.removeEventListener('canplay', handleCanPlay)
-      }
-
       this.target.addEventListener('ended', this.dispatchEnd.bind(this))
-      this.target.addEventListener('canplay', handleCanPlay)
+      this.target.addEventListener('canplay', this.dispatchReady.bind(this), {
+        once: true
+      })
       this.target.addEventListener('error', () => {
         const error = (this.target as HTMLAudioElement).error
 
@@ -410,5 +439,6 @@ export type {
   ControllerOptions,
   TTSBoundaryUpdate,
   CustomBoundaryEventListener,
-  CustomErrorEventListener
+  CustomErrorEventListener,
+  CustomNumberEventListener
 }

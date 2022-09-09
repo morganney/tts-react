@@ -1,6 +1,7 @@
 import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import { faker } from '@faker-js/faker'
-import { useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
+import type { ChangeEventHandler, ChangeEvent, ReactNode } from 'react'
 
 import { audiosrc } from './assets'
 import { TextToSpeech, Positions, Sizes, useTts } from '../src'
@@ -18,6 +19,9 @@ if (window.speechSynthesis) {
 }
 const capitalize = (text: string) => {
   return `${text[0].toUpperCase()}${text.substring(1)}`
+}
+const Label = ({ children }: { children: ReactNode }) => {
+  return <label style={{ display: 'inline-flex' }}>{children}</label>
 }
 const RandomSentence: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
@@ -131,13 +135,60 @@ const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
   )
 }
 const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
+  const [pitch, setPitch] = useState(1)
+  const [volume, setVolume] = useState(1)
+  const [rate, setRate] = useState(1)
   const [voices, setVoices] = useState(window.speechSynthesis?.getVoices() ?? [])
   const [voice, setVoice] = useState<SpeechSynthesisVoice | undefined>()
-  const { ttsChildren, state, onPlay, onPause, onReset, onStop } = useTts({
-    ...args,
-    voice,
-    children: 'The hook can be used to create custom controls.'
-  })
+  const prevVolume = useRef(volume)
+  const { ttsChildren, state, set, onPlay, onPause, onReset, onStop, onToggleMute } =
+    useTts({
+      ...args,
+      voice,
+      children: 'The hook can be used to create custom controls.'
+    })
+  const onMuteChanged = useCallback(() => {
+    onToggleMute((wasMuted) => {
+      setVolume(wasMuted ? prevVolume.current : 0)
+    })
+  }, [onToggleMute])
+  const onSelectVoice = useCallback(
+    (evt: ChangeEvent<HTMLSelectElement>) => {
+      setVoice(voices.find((voice) => voice.name === evt.target.value))
+      set.volume(1)
+      set.rate(1)
+      set.pitch(1)
+    },
+    [set, voices]
+  )
+  const onVolumeHandler: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (evt) => {
+      const volume = parseFloat(evt.target.value)
+
+      set.volume(volume)
+      setVolume(volume)
+      prevVolume.current = volume
+    },
+    [set]
+  )
+  const onRateHandler: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (evt) => {
+      const rate = parseFloat(evt.target.value)
+
+      set.rate(rate)
+      setRate(rate)
+    },
+    [set]
+  )
+  const onPitchHandler: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (evt) => {
+      const pitch = parseFloat(evt.target.value)
+
+      set.pitch(pitch)
+      setPitch(pitch)
+    },
+    [set]
+  )
 
   useEffect(() => {
     if (state.voices) {
@@ -146,15 +197,14 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
   }, [state.voices])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {voices.length > 0 ? (
         <>
+          <small>
+            <em>Some voices may create skewed word boundaries for the given text.</em>
+          </small>
           <label>
-            <select
-              value={voice?.name}
-              onChange={(evt) => {
-                setVoice(voices.find((voice) => voice.name === evt.target.value))
-              }}>
+            <select value={voice?.name} onChange={onSelectVoice}>
               <option>-- Select a voice --</option>
               {voices.map(({ name, lang }) => (
                 <option key={name} value={name}>
@@ -163,11 +213,6 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
               ))}
             </select>
           </label>
-          <p style={{ marginTop: 0 }}>
-            <small>
-              <em>(Some voices may create skewed word boundaries for the given text.)</em>
-            </small>
-          </p>
         </>
       ) : typeof window.speechSynthesis !== 'undefined' ? (
         <p>
@@ -183,10 +228,63 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
         </p>
       )}
       <div style={{ display: 'flex', gap: '5px' }}>
-        <button onClick={onPlay}>Play</button>
-        <button onClick={onPause}>Pause</button>
+        <button disabled={state.isPlaying} onClick={onPlay}>
+          Play
+        </button>
+        <button disabled={state.isPaused} onClick={onPause}>
+          Pause
+        </button>
         <button onClick={onStop}>Stop</button>
-        <button onClick={onReset}>Reset</button>
+        <button onClick={onReset}>Replay</button>
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '5px',
+          marginTop: '15px'
+        }}>
+        <label>
+          Mute: <input type="checkbox" onChange={onMuteChanged} />
+        </label>
+        <Label>
+          <span style={{ width: 70 }}>Volume:</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            disabled={state.isPlaying}
+            onChange={onVolumeHandler}
+          />
+        </Label>
+        <Label>
+          <span style={{ width: 70 }}>Rate:</span>
+          <input
+            type="range"
+            min="0.1"
+            max="4"
+            step="0.1"
+            defaultValue={'1'}
+            disabled={state.isPlaying}
+            onChange={onRateHandler}
+          />
+          <span>{rate}</span>
+        </Label>
+        <Label>
+          <span style={{ width: 70 }}>Pitch:</span>
+          <input
+            type="range"
+            min="0"
+            max="2"
+            step="0.01"
+            defaultValue="1"
+            disabled={state.isPlaying}
+            onChange={onPitchHandler}
+          />
+          <span>{pitch}</span>
+        </Label>
       </div>
       <p>{ttsChildren}</p>
     </div>
@@ -365,6 +463,9 @@ Hook.argTypes = {
     control: false
   },
   allowMuting: {
+    control: false
+  },
+  useStopOverPause: {
     control: false
   }
 }
