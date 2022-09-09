@@ -14,7 +14,8 @@ import type {
   ControllerOptions,
   TTSBoundaryUpdate,
   CustomBoundaryEventListener,
-  CustomErrorEventListener
+  CustomErrorEventListener,
+  CustomNumberEventListener
 } from './controller'
 import { isStringOrNumber, stripPunctuation } from './utils'
 import { Highlighter } from './highlighter'
@@ -36,8 +37,12 @@ interface TTSHookProps extends MarkStyles {
   autoPlay?: boolean
   /** Whether the spoken word should be wrapped in a `<mark>` element. */
   markTextAsSpoken?: boolean
-  /** Callback when the volume toggle button is clicked. */
-  onMuted?: (wasMuted: boolean) => void
+  /** Callback when the volume is changed.  */
+  onVolumeChange?: (newVolume: number) => void
+  /** Callback when the rate is changed.  */
+  onRateChange?: (newRate: number) => void
+  /** Callback when the pitch is changed.  */
+  onPitchChange?: (newPitch: number) => void
   /** Callback when there is an error of any kind. */
   onError?: (errorMsg: string) => void
   /** Function to fetch audio and speech marks for the spoken text. */
@@ -62,9 +67,13 @@ interface Action {
     | 'end'
     | 'error'
     | 'muted'
+    | 'unmuted'
     | 'stop'
     | 'voices'
   payload?: TTSBoundaryUpdate | SpeechSynthesisVoice[]
+}
+interface OnToggleMuteCallback {
+  (wasMuted: boolean): void
 }
 interface TTSHookResponse {
   set: {
@@ -87,12 +96,11 @@ interface TTSHookResponse {
   onStop: () => void
   onPause: () => void
   onReset: () => void
-  onMuted: () => void
+  onToggleMute: (callback?: OnToggleMuteCallback) => void
   onPlayStop: () => void
   onPlayPause: () => void
   ttsChildren: ReactNode
 }
-
 interface TextBuffer {
   text: string
 }
@@ -201,7 +209,9 @@ const reducer = (state: TTSHookState, action: Action): TTSHookState => {
     case 'stop':
       return { ...state, isPlaying: false, isPaused: false, isError: false }
     case 'muted':
-      return { ...state, isMuted: !state.isMuted }
+      return { ...state, isMuted: true }
+    case 'unmuted':
+      return { ...state, isMuted: false }
     default:
       throw new Error(`[tts-react]: invalid action type ${action.type}`)
   }
@@ -213,7 +223,9 @@ const useTts = ({
   markColor,
   markBackgroundColor,
   onError,
-  onMuted,
+  onVolumeChange,
+  onPitchChange,
+  onRateChange,
   fetchAudioData,
   autoPlay = false,
   markTextAsSpoken = false
@@ -225,7 +237,7 @@ const useTts = ({
     isPaused: false,
     isMuted: false,
     isError: false,
-    isReady: false
+    isReady: typeof fetchAudioData === 'undefined'
   })
   const [ttsChildren, spokenText] = useMemo(() => {
     const buffer: TextBuffer = { text: '' }
@@ -237,7 +249,7 @@ const useTts = ({
       boundary: state.boundary
     })
 
-    return [parsed, buffer.text]
+    return [parsed, buffer.text.trim()]
   }, [children, state.boundary, markColor, markBackgroundColor])
   const controller = useMemo(
     () =>
@@ -272,19 +284,24 @@ const useTts = ({
 
     dispatch({ type: 'stop' })
   }, [controller])
-  const onMutedHandler = useCallback(() => {
-    if (state.isMuted) {
-      controller.unmute()
-    } else {
-      controller.mute()
-    }
+  const onToggleMuteHandler = useCallback(
+    (callback?: OnToggleMuteCallback) => {
+      const wasMuted = state.isMuted
 
-    if (typeof onMuted === 'function') {
-      onMuted(state.isMuted)
-    }
+      if (wasMuted) {
+        controller.unmute()
+        dispatch({ type: 'unmuted' })
+      } else {
+        controller.mute()
+        dispatch({ type: 'muted' })
+      }
 
-    dispatch({ type: 'muted' })
-  }, [controller, state.isMuted, onMuted])
+      if (typeof callback === 'function') {
+        callback(wasMuted)
+      }
+    },
+    [controller, state.isMuted]
+  )
   const onPlayPause = useMemo(
     () => (state.isPlaying ? onPause : onPlay),
     [state.isPlaying, onPause, onPlay]
@@ -339,11 +356,6 @@ const useTts = ({
     }
     const onReady = () => {
       dispatch({ type: 'ready' })
-
-      if (autoPlay) {
-        controller.play()
-        dispatch({ type: 'play' })
-      }
     }
     const onErrorHandler: CustomErrorEventListener = (evt) => {
       dispatch({ type: 'error' })
@@ -355,6 +367,31 @@ const useTts = ({
     const onBoundary: CustomBoundaryEventListener = (evt) => {
       dispatch({ type: 'boundary', payload: evt.detail })
     }
+    const onVolume: CustomNumberEventListener = (evt) => {
+      const volume = evt.detail
+
+      if (volume === 0 && !state.isMuted) {
+        dispatch({ type: 'muted' })
+      }
+
+      if (volume !== 0 && state.isMuted) {
+        dispatch({ type: 'unmuted' })
+      }
+
+      if (typeof onVolumeChange === 'function') {
+        onVolumeChange(volume)
+      }
+    }
+    const onPitch: CustomNumberEventListener = (evt) => {
+      if (typeof onPitchChange === 'function') {
+        onPitchChange(evt.detail)
+      }
+    }
+    const onRate: CustomNumberEventListener = (evt) => {
+      if (typeof onRateChange === 'function') {
+        onRateChange(evt.detail)
+      }
+    }
     const onBeforeUnload = () => {
       controller.clear()
     }
@@ -362,6 +399,9 @@ const useTts = ({
     controller.addEventListener(Events.END, onEnd)
     controller.addEventListener(Events.ERROR, onErrorHandler as EventListener)
     controller.addEventListener(Events.READY, onReady)
+    controller.addEventListener(Events.VOLUME, onVolume as EventListener)
+    controller.addEventListener(Events.PITCH, onPitch as EventListener)
+    controller.addEventListener(Events.RATE, onRate as EventListener)
     window.addEventListener('beforeunload', onBeforeUnload)
 
     if (markTextAsSpoken) {
@@ -375,10 +415,28 @@ const useTts = ({
       controller.removeEventListener(Events.ERROR, onErrorHandler as EventListener)
       controller.removeEventListener(Events.READY, onReady)
       controller.removeEventListener(Events.BOUNDARY, onBoundary as EventListener)
+      controller.removeEventListener(Events.VOLUME, onVolume as EventListener)
+      controller.removeEventListener(Events.PITCH, onPitch as EventListener)
+      controller.removeEventListener(Events.RATE, onRate as EventListener)
       window.removeEventListener('beforeunload', onBeforeUnload)
-      controller.clear()
     }
-  }, [controller, autoPlay, markTextAsSpoken, onError])
+  }, [
+    controller,
+    markTextAsSpoken,
+    onError,
+    state.isMuted,
+    onVolumeChange,
+    onPitchChange,
+    onRateChange
+  ])
+
+  useEffect(() => {
+    if (autoPlay && state.isReady) {
+      controller.clear()
+      controller.play()
+      dispatch({ type: 'play' })
+    }
+  }, [autoPlay, controller, state.isReady])
 
   useEffect(() => {
     const onVoicesChanged = () => {
@@ -406,7 +464,7 @@ const useTts = ({
     onReset,
     onPlayStop,
     onPlayPause,
-    onMuted: onMutedHandler
+    onToggleMute: onToggleMuteHandler
   }
 }
 

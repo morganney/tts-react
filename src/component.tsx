@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import type { CSSProperties } from 'react'
 
 import { useTts } from './hook'
@@ -23,6 +23,8 @@ interface TTSProps extends TTSHookProps {
   position?: `${Positions}`
   /** Whether the `TextToSpeech` component should render the audio toggling control. */
   allowMuting?: boolean
+  /** Callback when the `TextToSpeech` component's audio toggling control is clicked. */
+  onMuteToggled?: (wasMuted: boolean) => void
   /** Whether the `TextToSpeech` component should render a stop control instead of pause. */
   useStopOverPause?: boolean
 }
@@ -65,12 +67,13 @@ const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
  * Optionally, you can fallback to using the `HTMLAudioElement` API
  * when setting the `fetchAudioData` prop, for example to use Amazon Polly.
  *
- * `TextToSpeech` is an implementation of `useTts` that provides
+ * The `TextToSpeech` component is an implementation of `useTts` that provides
  * controls for playing, pausing/stopping, and replaying the spoken text.
  * It also extends the props of `useTts` by supporting some of it's own:
  *
  * - `align`
  * - `allowMuting`
+ * - `onMuteToggled`
  * - `position`
  * - `size`
  * - `useStopOverPause`
@@ -80,6 +83,7 @@ const TextToSpeech = ({
   voice,
   children,
   onError,
+  onMuteToggled,
   fetchAudioData,
   markColor,
   markBackgroundColor,
@@ -91,7 +95,7 @@ const TextToSpeech = ({
   markTextAsSpoken = false,
   useStopOverPause = false
 }: TTSProps) => {
-  const { state, onReset, onMuted, onPlayPause, onPlayStop, ttsChildren } = useTts({
+  const { state, onReset, onToggleMute, onPlayPause, onPlayStop, ttsChildren } = useTts({
     lang,
     voice,
     children,
@@ -118,6 +122,9 @@ const TextToSpeech = ({
 
     return ['play', 'Play', onPlayPause]
   }, [state.isPlaying, useStopOverPause, onPlayStop, onPlayPause])
+  const handleOnMuteClicked = useCallback(() => {
+    onToggleMute(onMuteToggled)
+  }, [onToggleMute, onMuteToggled])
 
   return (
     <div style={wrapStyle} className="tts-react">
@@ -127,7 +134,7 @@ const TextToSpeech = ({
             <Control
               size={size}
               title="Mute audio"
-              onClick={onMuted}
+              onClick={handleOnMuteClicked}
               type={
                 state.isMuted ? 'volumeOff' : state.isPlaying ? 'volumeUp' : 'volumeDown'
               }
