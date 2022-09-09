@@ -5,7 +5,9 @@ import type { ChangeEventHandler, ChangeEvent, ReactNode } from 'react'
 
 import { audiosrc } from './assets'
 import { TextToSpeech, Positions, Sizes, useTts } from '../src'
+import type { TTSHookProps } from '../src'
 
+type SpeakProps = Pick<TTSHookProps, 'children'>
 let voices: SpeechSynthesisVoice[] = []
 
 if (window.speechSynthesis) {
@@ -133,6 +135,15 @@ const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
       ))}
     </TextToSpeech>
   )
+}
+const SpeakComponent: ComponentStory<typeof TextToSpeech> = (args) => {
+  const Speak = ({ children }: SpeakProps) => {
+    const { ttsChildren } = useTts({ ...args, children, autoPlay: true })
+
+    return <>{ttsChildren}</>
+  }
+
+  return <Speak>This text will be spoken on render.</Speak>
 }
 const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
   const [pitch, setPitch] = useState(1)
@@ -469,6 +480,26 @@ Hook.argTypes = {
     control: false
   }
 }
+SpeakComponent.argTypes = {
+  autoPlay: {
+    control: false
+  },
+  size: {
+    control: false
+  },
+  align: {
+    control: false
+  },
+  position: {
+    control: false
+  },
+  allowMuting: {
+    control: false
+  },
+  useStopOverPause: {
+    control: false
+  }
+}
 Android.argTypes = {
   useStopOverPause: {
     control: false
@@ -540,6 +571,7 @@ export default {
 export {
   Hook,
   Component,
+  SpeakComponent,
   Languages,
   LangES_ES,
   AmazonPolly,

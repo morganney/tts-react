@@ -1,6 +1,6 @@
 {
   "name": "tts-react",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "React component to convert text to speech.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -55,8 +55,10 @@
     "@storybook/addon-controls": "^6.5.10",
     "@storybook/addon-docs": "^6.5.10",
     "@storybook/react": "^6.5.10",
+    "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^12.1.5",
     "@testing-library/react-hooks": "^8.0.1",
+    "@testing-library/user-event": "^14.4.3",
     "@types/react": "^17.0.49",
     "@types/react-dom": "^17.0.17",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
