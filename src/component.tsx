@@ -133,7 +133,8 @@ const TextToSpeech = ({
           {allowMuting && (
             <Control
               size={size}
-              title="Mute audio"
+              title={state.isMuted ? 'Unmute' : 'Mute'}
+              aria-label={state.isMuted ? 'Unmute' : 'Mute'}
               onClick={handleOnMuteClicked}
               type={
                 state.isMuted ? 'volumeOff' : state.isPlaying ? 'volumeUp' : 'volumeDown'
@@ -143,11 +144,18 @@ const TextToSpeech = ({
           <Control
             type={type as ControlProps['type']}
             title={title}
+            aria-label={title}
             onClick={onClick}
             size={size}
           />
           {state.isPaused && (
-            <Control type="replay" size={size} title="Replay" onClick={onReset} />
+            <Control
+              type="replay"
+              size={size}
+              title="Replay"
+              aria-label="Replay"
+              onClick={onReset}
+            />
           )}
         </aside>
       )}

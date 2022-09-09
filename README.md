@@ -1,6 +1,7 @@
 # [`tts-react`](https://www.npmjs.com/package/tts-react)
 
 ![CI](https://github.com/morganney/tts-react/actions/workflows/ci.yml/badge.svg)
+[![codecov](https://codecov.io/gh/morganney/tts-react/branch/main/graph/badge.svg?token=ZDP1VBC8E1)](https://codecov.io/gh/morganney/tts-react)
 
 <img src="./tts-react.png" alt="TextToSpeech React component" width="375" />
 
@@ -20,7 +21,7 @@ By default `tts-react` uses the [`SpeechSynthesis`](https://developer.mozilla.or
 
 #### Hook
 
-```ts
+```tsx
 import { useTts } from 'tts-react'
 import type { TTSHookProps } from 'tts-react'
 
@@ -53,9 +54,28 @@ const App = () => {
 }
 ```
 
+You can use the hook to create a `Speak` component that converts the text to speech on render:
+
+```tsx
+import { useTts } from 'tts-react'
+import type { TTSHookProps } from 'tts-react'
+
+type SpeakProps = Pick<TTSHookProps, 'children'>
+
+const Speak = ({ children }: SpeakProps) => {
+  const { ttsChildren } = useTts({ children, autoPlay: true })
+
+  return <>{ttsChildren}</>
+}
+
+const App = () => {
+  return <Speak>This text will be spoken on render.</Speak>
+}
+```
+
 #### Component
 
-```ts
+```tsx
 import { TextToSpeech, Positions, Sizes } from 'tts-react'
 
 const App = () => {
