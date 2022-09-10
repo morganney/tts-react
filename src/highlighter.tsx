@@ -39,7 +39,7 @@ const Highlighter = ({ text, mark, color, backgroundColor }: HighliterProps) => 
 
             if (regex.test(part)) {
               return (
-                <mark key={key} style={markStyle} className="tts-react-mark">
+                <mark key={key} style={markStyle} data-testid="tts-react-mark">
                   {part}
                 </mark>
               )
