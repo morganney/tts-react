@@ -2,6 +2,7 @@
 
 ![CI](https://github.com/morganney/tts-react/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/morganney/tts-react/branch/main/graph/badge.svg?token=ZDP1VBC8E1)](https://codecov.io/gh/morganney/tts-react)
+[![NPM version](https://img.shields.io/npm/v/tts-react.svg)](https://www.npmjs.com/package/tts-react)
 
 <img src="./tts-react.png" alt="TextToSpeech React component" width="375" />
 
@@ -13,7 +14,7 @@ By default `tts-react` uses the [`SpeechSynthesis`](https://developer.mozilla.or
 
 `npm i react react-dom tts-react`
 
-## Documentation
+## Demo
 
 [morganney.github.io/tts-react](https://morganney.github.io/tts-react/)
 
