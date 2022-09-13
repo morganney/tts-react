@@ -129,7 +129,7 @@ const TextToSpeech = ({
   return (
     <div style={wrapStyle} className="tts-react">
       {state.isReady && (
-        <aside style={controlsStyle}>
+        <aside style={controlsStyle} data-testid="tts-react-controls">
           {allowMuting && (
             <Control
               size={size}
