@@ -74,10 +74,10 @@ class Controller extends EventTarget {
     } else {
       this.initWebSpeechVoice(options.voice)
 
-      if ('onvoiceschanged' in window.speechSynthesis) {
-        window.speechSynthesis.addEventListener('voiceschanged', () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = () => {
           this.initWebSpeechVoice(options.voice)
-        })
+        }
       }
     }
   }
@@ -200,6 +200,18 @@ class Controller extends EventTarget {
     return Math.max(min, Math.min(value, max))
   }
 
+  get synth(): Synthesizer {
+    return this.synthesizer
+  }
+
+  get utter(): Target {
+    if (this.target instanceof SpeechSynthesisUtterance) {
+      return this.target
+    }
+
+    return this.target as HTMLAudioElement
+  }
+
   get paused(): boolean {
     return this.synthesizer.paused
   }
@@ -209,11 +221,7 @@ class Controller extends EventTarget {
       return this.synthesizer.playbackRate
     }
 
-    if (this.target instanceof SpeechSynthesisUtterance) {
-      return this.target.rate
-    }
-
-    throw new Error(`[tts-react]: invalid controller instance.`)
+    return (this.target as SpeechSynthesisUtterance).rate
   }
 
   set rate(value: number) {
@@ -237,7 +245,8 @@ class Controller extends EventTarget {
       return this.target.pitch
     }
 
-    throw new Error(`[tts-react]: can not read 'pitch' on HTMLAudioElement.`)
+    // Not supported by HTMLAudioElement
+    return -1
   }
 
   set pitch(value: number) {
@@ -266,27 +275,23 @@ class Controller extends EventTarget {
 
   get preservesPitch(): boolean {
     if (this.synthesizer instanceof HTMLAudioElement) {
-      const synth: HTMLAudioElement & { preservesPitch?: boolean } = this.synthesizer
-
-      if (synth.preservesPitch) {
-        return synth.preservesPitch
-      }
+      return (this.synthesizer as HTMLAudioElement & { preservesPitch: boolean })
+        .preservesPitch
     }
 
     return false
   }
 
   set preservesPitch(value: boolean) {
+    /**
+     * `preservesPitch` requires vendor-prefix on some browsers (Safari).
+     * @see https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1300
+     */
     if (this.synthesizer instanceof HTMLAudioElement) {
-      /**
-       * `preservesPitch` requires vendor-prefix on some browsers (Safari).
-       * @see https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1300
-       */
-      const synth: HTMLAudioElement & { preservesPitch?: boolean } = this.synthesizer
-
-      if (synth.preservesPitch) {
-        synth.preservesPitch = value
-      }
+      // eslint-disable-next-line @typescript-eslint/no-extra-semi
+      ;(
+        this.synthesizer as HTMLAudioElement & { preservesPitch: boolean }
+      ).preservesPitch = value
     }
   }
 
@@ -303,7 +308,14 @@ class Controller extends EventTarget {
     }
   }
 
-  init(): void {
+  /**
+   * Allows listeners for controller events to be registered
+   * before instances start firing events related to underlying API's,
+   * for instance in a useEffect block.
+   *
+   * Run it as async to allow for the fetchAudioData call to be awaited.
+   */
+  async init(): Promise<void> {
     if (this.target instanceof SpeechSynthesisUtterance) {
       this.target.addEventListener('end', this.dispatchEnd.bind(this))
       this.target.addEventListener('start', this.dispatchPlaying.bind(this))
@@ -364,9 +376,9 @@ class Controller extends EventTarget {
     }
   }
 
-  play(): void {
+  async play(): Promise<void> {
     if (this.synthesizer instanceof HTMLAudioElement) {
-      this.playHtmlAudio()
+      await this.playHtmlAudio()
     } else {
       this.synthesizer.speak(this.target as SpeechSynthesisUtterance)
     }
@@ -380,44 +392,51 @@ class Controller extends EventTarget {
     this.volume = 0
 
     /**
-     * There is no way to effectively mute an ongoing utterance.
-     * Cancel the current utterance queue and restart the speaking.
+     * There is no way to effectively mute an ongoing utterance for SpeechSynthesis.
+     * If there is currently an utterance being spoken, reset to activate the muting.
      */
-    if (!(this.synthesizer instanceof HTMLAudioElement)) {
-      this.clear()
-
-      if (!this.paused && this.synthesizer.speaking) {
-        this.reset()
-      }
+    if (
+      !(this.synthesizer instanceof HTMLAudioElement) &&
+      !this.paused &&
+      this.synthesizer.speaking
+    ) {
+      this.reset()
     }
   }
 
   unmute(volume?: number): void {
     this.volume = volume ?? 1
 
-    if (!(this.synthesizer instanceof HTMLAudioElement)) {
-      this.clear()
-
-      if (!this.paused && this.synthesizer.speaking) {
-        this.reset()
-      }
+    /**
+     * Same as muting, for SpeechSynthesis have to reset to activate the volume change.
+     */
+    if (
+      !(this.synthesizer instanceof HTMLAudioElement) &&
+      !this.paused &&
+      this.synthesizer.speaking
+    ) {
+      this.reset()
     }
   }
 
-  resume(): void {
+  async resume(): Promise<void> {
     if (this.synthesizer instanceof HTMLAudioElement) {
-      this.playHtmlAudio()
+      await this.playHtmlAudio()
     } else {
       this.synthesizer.resume()
     }
   }
 
-  reset(): void {
+  async reset(): Promise<void> {
     if (this.synthesizer instanceof HTMLAudioElement) {
       this.synthesizer.load()
-      this.playHtmlAudio()
+      await this.playHtmlAudio()
     } else {
+      // Take out of any paused state
+      this.synthesizer.resume()
+      // Drop all utterances in the queue
       this.synthesizer.cancel()
+      // Starat speaking from the beginning
       this.synthesizer.speak(this.target as SpeechSynthesisUtterance)
     }
   }

@@ -5,5 +5,23 @@
     ["@babel/preset-react", {
       "runtime": "automatic"
     }]
-  ]
+  ],
+  "env": {
+    "development": {
+      "presets": [
+        "@babel/preset-env",
+        "@babel/preset-typescript",
+        ["@babel/preset-react", {
+          "runtime": "automatic"
+        }]
+      ]
+    },
+    "production": {
+      "plugins": [
+        ["react-remove-properties", {
+          "properties": ["data-testid"]
+        }]
+      ]
+    }
+  }
 }

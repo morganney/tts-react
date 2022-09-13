@@ -5,7 +5,7 @@ enum Sizes {
 }
 
 interface SvgProps {
-  size: `${Sizes}`
+  size?: `${Sizes}`
 }
 
 const iconSizes = {

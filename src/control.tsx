@@ -32,13 +32,7 @@ const button = (
     borderRadius: `${iconSizes[size]}px`
   }
 }
-const Control = ({
-  title,
-  type,
-  onClick,
-  size = Sizes.MEDIUM,
-  ...rest
-}: ControlProps) => {
+const Control = ({ title, type, onClick, size, ...rest }: ControlProps) => {
   const [hovering, setHovering] = useState(false)
   const svg = useMemo(() => {
     return icons[type]({ size })

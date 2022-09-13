@@ -13,10 +13,10 @@ let voices: SpeechSynthesisVoice[] = []
 if (window.speechSynthesis) {
   voices = window.speechSynthesis.getVoices()
 
-  if (typeof window.speechSynthesis.addEventListener === 'function') {
-    window.speechSynthesis?.addEventListener('voiceschanged', () => {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = () => {
       voices = window.speechSynthesis.getVoices()
-    })
+    }
   }
 }
 const capitalize = (text: string) => {
@@ -49,10 +49,10 @@ const Languages: ComponentStory<typeof TextToSpeech> = (args) => {
   const [lang, setLang] = useState<string | undefined>()
 
   useEffect(() => {
-    if (typeof window.speechSynthesis?.addEventListener === 'function') {
-      window.speechSynthesis.addEventListener('voiceschanged', () => {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = () => {
         setLocales(toLocales(window.speechSynthesis.getVoices()))
-      })
+      }
     }
   }, [])
 
@@ -161,14 +161,18 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
   const onMuteChanged = useCallback(() => {
     onToggleMute((wasMuted) => {
       setVolume(wasMuted ? prevVolume.current : 0)
+      set.volume(wasMuted ? prevVolume.current : 0)
     })
-  }, [onToggleMute])
+  }, [onToggleMute, set])
   const onSelectVoice = useCallback(
     (evt: ChangeEvent<HTMLSelectElement>) => {
       setVoice(voices.find((voice) => voice.name === evt.target.value))
       set.volume(1)
+      setVolume(1)
       set.rate(1)
+      setRate(1)
       set.pitch(1)
+      setPitch(1)
     },
     [set, voices]
   )

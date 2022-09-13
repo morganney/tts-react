@@ -64,6 +64,7 @@
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
     "babel-jest": "^29.0.2",
+    "babel-plugin-react-remove-properties": "^0.3.0",
     "circular-dependency-plugin": "^5.2.2",
     "codecov": "^3.8.3",
     "eslint": "^8.23.0",

@@ -4,10 +4,16 @@ import { SpeechSynthesisUtteranceMock } from './__tests__/speechSynthesisUtteran
 import '@testing-library/jest-dom'
 
 beforeEach(() => {
-  global.speechSynthesis = SpeechSynthesisMock
+  global.HTMLMediaElement.prototype.play = jest.fn(() => Promise.resolve())
+  global.HTMLMediaElement.prototype.pause = jest.fn()
+  global.HTMLMediaElement.prototype.load = jest.fn()
+  global.speechSynthesis = new SpeechSynthesisMock()
   global.SpeechSynthesisUtterance = SpeechSynthesisUtteranceMock
+
+  jest.useFakeTimers()
 })
 
 afterEach(() => {
   jest.clearAllMocks()
+  jest.runAllTimers()
 })

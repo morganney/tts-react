@@ -395,20 +395,23 @@ const useTts = ({
     const onBeforeUnload = () => {
       controller.clear()
     }
+    const initializeListeners = async () => {
+      controller.addEventListener(Events.END, onEnd)
+      controller.addEventListener(Events.ERROR, onErrorHandler as EventListener)
+      controller.addEventListener(Events.READY, onReady)
+      controller.addEventListener(Events.VOLUME, onVolume as EventListener)
+      controller.addEventListener(Events.PITCH, onPitch as EventListener)
+      controller.addEventListener(Events.RATE, onRate as EventListener)
+      window.addEventListener('beforeunload', onBeforeUnload)
 
-    controller.addEventListener(Events.END, onEnd)
-    controller.addEventListener(Events.ERROR, onErrorHandler as EventListener)
-    controller.addEventListener(Events.READY, onReady)
-    controller.addEventListener(Events.VOLUME, onVolume as EventListener)
-    controller.addEventListener(Events.PITCH, onPitch as EventListener)
-    controller.addEventListener(Events.RATE, onRate as EventListener)
-    window.addEventListener('beforeunload', onBeforeUnload)
+      if (markTextAsSpoken) {
+        controller.addEventListener(Events.BOUNDARY, onBoundary as EventListener)
+      }
 
-    if (markTextAsSpoken) {
-      controller.addEventListener(Events.BOUNDARY, onBoundary as EventListener)
+      await controller.init()
     }
 
-    controller.init()
+    initializeListeners()
 
     return () => {
       controller.removeEventListener(Events.END, onEnd)
@@ -443,12 +446,14 @@ const useTts = ({
       dispatch({ type: 'voices', payload: window.speechSynthesis.getVoices() })
     }
 
-    if (typeof window.speechSynthesis?.addEventListener === 'function') {
-      window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged)
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = onVoicesChanged
     }
 
     return () => {
-      window.speechSynthesis?.removeEventListener('voiceschanged', onVoicesChanged)
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = null
+      }
     }
   }, [])
 
