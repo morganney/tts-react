@@ -2,6 +2,7 @@ import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import { faker } from '@faker-js/faker'
 import { useRef, useState, useEffect, useCallback } from 'react'
 import type { ChangeEventHandler, ChangeEvent, ReactNode } from 'react'
+import parse from 'html-react-parser'
 
 import { audiosrc } from './assets'
 import { TextToSpeech, Positions, Sizes, useTts } from '../src'
@@ -137,13 +138,15 @@ const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
   )
 }
 const SpeakComponent: ComponentStory<typeof TextToSpeech> = (args) => {
-  const Speak = ({ children }: SpeakProps) => {
-    const { ttsChildren } = useTts({ ...args, children, autoPlay: true })
+  const Speak = ({ children }: SpeakProps) => (
+    <>{useTts({ ...args, children, autoPlay: true }).ttsChildren}</>
+  )
 
-    return <>{ttsChildren}</>
-  }
-
-  return <Speak>This text will be spoken on render.</Speak>
+  return (
+    <Speak>
+      <p>This text will be spoken on render.</p>
+    </Speak>
+  )
 }
 const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
   const [pitch, setPitch] = useState(1)
@@ -321,6 +324,31 @@ const Component: ComponentStory<typeof TextToSpeech> = (args) => {
         </ul>
       </div>
     </TextToSpeech>
+  )
+}
+const DangerouslySetInnerHTML: ComponentStory<typeof TextToSpeech> = (args) => {
+  const html = '<ul><li>one</li><li>two</li><li>three</li></ul>'
+
+  return (
+    <>
+      <p>
+        <code>tts-react</code> does not support speaking text from{' '}
+        <code>dangerouslySetInnerHTML</code> content. Instead use an html-to-react parser
+        and avoid using <code>dangerouslySetInnerHTML</code>.
+      </p>
+      <p>For example:</p>
+      <pre style={{ color: 'green' }}>
+        import parse from &apos;html-react-parser&apos;
+        <br />
+        <br />
+        const html =
+        &apos;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;li&gt;three&lt;/li&gt;&lt;/ul&gt;&apos;
+        <br />
+        <br />
+        &lt;TextToSpeech markTextAsSpoken&gt;&#123;parse(html)&#125;&lt;/TextToSpeech&gt;
+      </pre>
+      <TextToSpeech {...args}>{parse(html)}</TextToSpeech>
+    </>
   )
 }
 const ErrorExample: ComponentStory<typeof TextToSpeech> = (args) => {
@@ -581,6 +609,7 @@ export {
   AmazonPolly,
   ImageText,
   Android,
+  DangerouslySetInnerHTML,
   Sentence,
   RandomSentence,
   RandomText,

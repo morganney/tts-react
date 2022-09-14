@@ -14,46 +14,13 @@ By default `tts-react` uses the [`SpeechSynthesis`](https://developer.mozilla.or
 
 `npm i react react-dom tts-react`
 
-## Demo
+## Demo (Storybook)
 
 [morganney.github.io/tts-react](https://morganney.github.io/tts-react/)
 
 ## Example
 
 #### Hook
-
-```tsx
-import { useTts } from 'tts-react'
-import type { TTSHookProps } from 'tts-react'
-
-interface HookExampleProps extends TTSHookProps {
-  highlight?: boolean
-}
-
-const HookExample = ({ children, highlight = false }: HookExampleProps) => {
-  const { ttsChildren, state, onPlay, onStop, onPause } = useTts({
-    children,
-    markTextAsSpoken: highlight
-  })
-
-  return (
-    <div>
-      {state.isReady && (
-        <>
-          <button onClick={onPlay}>Play</button>
-          <button onClick={onPause}>Pause</button>
-          <button onClick={onStop}>Stop</button>
-        </>
-      )}
-      {ttsChildren}
-    </div>
-  )
-}
-
-const App = () => {
-  return <HookExample highlight>Some text to be spoken.</HookExample>
-}
-```
 
 You can use the hook to create a `Speak` component that converts the text to speech on render:
 
@@ -63,18 +30,59 @@ import type { TTSHookProps } from 'tts-react'
 
 type SpeakProps = Pick<TTSHookProps, 'children'>
 
-const Speak = ({ children }: SpeakProps) => {
-  const { ttsChildren } = useTts({ children, autoPlay: true })
+const Speak = ({ children }: SpeakProps) => (
+  <>{useTts({ children, autoPlay: true }).ttsChildren}</>
+)
 
-  return <>{ttsChildren}</>
+const App = () => {
+  return (
+    <Speak>
+      <p>This text will be spoken on render.</p>
+    </Speak>
+  )
+}
+```
+
+Or create a more advanced component with controls for adjusting the speaking:
+
+```tsx
+import { useTts } from 'tts-react'
+import type { TTSHookProps } from 'tts-react'
+
+interface CustomProps extends TTSHookProps {
+  highlight?: boolean
+}
+
+const CustomTTSComponent = ({ children, highlight = false }: CustomProps) => {
+  const { ttsChildren, state, onPlay, onStop, onPause } = useTts({
+    children,
+    markTextAsSpoken: highlight
+  })
+
+  return (
+    <div>
+      <>
+        <button disabled={state.isPlaying} onClick={onPlay}>Play</button>
+        <button onClick={onPause}>Pause</button>
+        <button onClick={onStop}>Stop</button>
+      </>
+      {ttsChildren}
+    </div>
+  )
 }
 
 const App = () => {
-  return <Speak>This text will be spoken on render.</Speak>
+  return (
+    <CustomTTSComponent highlight>
+      <p>Some text to be spoken and highlighted.</p>
+    </CustomTTSComponent>
+  )
 }
 ```
 
 #### Component
+
+Use the `TextToSpeech` component to get up and running quickly:
 
 ```tsx
 import { TextToSpeech, Positions, Sizes } from 'tts-react'
@@ -220,7 +228,7 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 |<sup>`*`</sup>useStopOverPause|no|`boolean`|`false`|Whether the controls should display a stop button instead of a pause button. On Android devices, `SpeechSynthesis.pause()` behaves like `cancel()`, so you can use this prop in that context.|
 
 
-## FAQs
+## FAQ
 
 <details>
 <summary>Why does <code>markTextAsSpoken</code> sometimes highlight the wrong word?</summary>
@@ -237,4 +245,14 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 <p>See the compat table on MDN for <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis/pause#browser_compatibility" target="_blank">SpeechSynthesis.pause()</a>.</p>
 <p><blockquote>In Android, pause() ends the current utterance. pause() behaves the same as cancel().</blockquote></p>
 <p>You can use the hook <code>useTts</code> to build custom controls that <strong>do not</strong> expose a pause, but only stop. If using the <code>TextToSpeech</code> component use the <code>useStopOverPause</code> prop for Android devices.</p>
+</details>
+
+<details>
+<summary>Why is text from <code>dangerouslySetInnerHTML</code> not spoken?</summary>
+<p><code>tts-react</code> does not speak text from <code>dangerouslySetInnerHTML</code>. Instead convert your HTML string into React elements via an html-to-react parser. See this <a href="https://morganney.github.io/tts-react/?path=/story/tts-react--dangerously-set-inner-html">example</a>.</p>
+</details>
+
+<details>
+<summary>What's up with Safari?</summary>
+<p>Safari simply does not follow the spec completely (yet). As one example, Safari 15.6.1 on macOS Monterey 12.5.1, throws a <code>SpeechSynthesisEvent</code> during a <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/error_event"><code>SpeechSynthesisUtterance.error</code></a>, while the spec says errors against utterances <a href="https://wicg.github.io/speech-api/#utterance-events">"must use the SpeechSynthesisErrorEvent interface"</a>.</p>
 </details>
