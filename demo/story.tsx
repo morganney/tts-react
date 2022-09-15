@@ -3,6 +3,7 @@ import { faker } from '@faker-js/faker'
 import { useRef, useState, useEffect, useCallback } from 'react'
 import type { ChangeEventHandler, ChangeEvent, ReactNode } from 'react'
 import parse from 'html-react-parser'
+import { action } from '@storybook/addon-actions'
 
 import { audiosrc } from './assets'
 import { TextToSpeech, Positions, Sizes, useTts } from '../src'
@@ -45,15 +46,14 @@ const Languages: ComponentStory<typeof TextToSpeech> = (args) => {
   const toLocales = (voices: SpeechSynthesisVoice[]) =>
     Array.from(new Set(voices.map((voice) => voice.lang)))
   const [locales, setLocales] = useState(() =>
-    toLocales(speechSynthesis?.getVoices() ?? [])
+    toLocales(window.speechSynthesis?.getVoices() ?? [])
   )
   const [lang, setLang] = useState<string | undefined>()
 
   useEffect(() => {
-    if (window.speechSynthesis) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        setLocales(toLocales(window.speechSynthesis.getVoices()))
-      }
+    if (!voices.length) {
+      voices = window.speechSynthesis?.getVoices()
+      setLocales(toLocales(voices))
     }
   }, [])
 
@@ -139,12 +139,17 @@ const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
 }
 const SpeakComponent: ComponentStory<typeof TextToSpeech> = (args) => {
   const Speak = ({ children }: SpeakProps) => (
-    <>{useTts({ ...args, children, autoPlay: true }).ttsChildren}</>
+    <>
+      {
+        useTts({ ...args, children, autoPlay: !window.location.search.includes('docs') })
+          .ttsChildren
+      }
+    </>
   )
 
   return (
     <Speak>
-      <p>This text will be spoken on render.</p>
+      <p>This text will be spoken with words marked on render.</p>
     </Speak>
   )
 }
@@ -159,7 +164,10 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
     useTts({
       ...args,
       voice,
-      children: 'The hook can be used to create custom controls.'
+      children: 'The hook can be used to create custom controls.',
+      onVolumeChange: action('onVolumeChange'),
+      onPitchChange: action('onPitchChange'),
+      onRateChange: action('onRateChange')
     })
   const onMuteChanged = useCallback(() => {
     onToggleMute((wasMuted) => {
@@ -368,76 +376,13 @@ const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
   const fetchAudioData = () =>
     Promise.resolve({
       marks: [
-        {
-          time: 6,
-          type: 'word',
-          start: 0,
-          end: 4,
-          value: 'Text'
-        },
-        {
-          time: 286,
-          type: 'word',
-          start: 5,
-          end: 7,
-          value: 'to'
-        },
-        {
-          time: 347,
-          type: 'word',
-          start: 8,
-          end: 10,
-          value: 'be'
-        },
-        {
-          time: 479,
-          type: 'word',
-          start: 11,
-          end: 21,
-          value: 'translated'
-        },
-        {
-          time: 1162,
-          type: 'word',
-          start: 22,
-          end: 24,
-          value: 'to'
-        },
-        {
-          time: 1244,
-          type: 'word',
-          start: 25,
-          end: 31,
-          value: 'speech'
-        },
-        {
-          time: 1599,
-          type: 'word',
-          start: 32,
-          end: 34,
-          value: 'by'
-        },
-        {
-          time: 1719,
-          type: 'word',
-          start: 35,
-          end: 40,
-          value: 'Polly'
-        },
-        {
-          time: 2064,
-          type: 'word',
-          start: 41,
-          end: 44,
-          value: 'for'
-        },
-        {
-          time: 2219,
-          type: 'word',
-          start: 45,
-          end: 50,
-          value: 'Story'
-        }
+        { time: 6, type: 'word', start: 0, end: 3, value: 'You' },
+        { time: 126, type: 'word', start: 4, end: 7, value: 'can' },
+        { time: 292, type: 'word', start: 8, end: 11, value: 'use' },
+        { time: 495, type: 'word', start: 12, end: 18, value: 'Amazon' },
+        { time: 936, type: 'word', start: 19, end: 24, value: 'Polly' },
+        { time: 1314, type: 'word', start: 25, end: 29, value: 'with' },
+        { time: 1481, type: 'word', start: 30, end: 45, value: 'fetchAudioData' }
       ],
       audio: audiosrc
     })
@@ -451,7 +396,9 @@ const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
         </small>
       </p>
       <TextToSpeech {...args} fetchAudioData={fetchAudioData}>
-        <p>Text to be translated to speech by Polly for Story</p>
+        <p>
+          You can use Amazon Polly with <code>fetchAudioData</code>.
+        </p>
       </TextToSpeech>
     </>
   )
