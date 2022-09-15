@@ -45,8 +45,6 @@ class SpeechSynthesisMock extends EventTarget {
     let word = words.shift()
 
     this.#abortController.signal.onabort = () => {
-      //console.log('onAbort called, pushing utterance entry', words)
-
       this.#utterances.unshift({ utterance: entry.utterance, words: [...words] })
       this.#speaking = false
     }
@@ -94,7 +92,6 @@ class SpeechSynthesisMock extends EventTarget {
     }
 
     if (this.#speaking && this.#abortController) {
-      //console.log('abort from cancel')
       this.#abortController.abort()
     }
 
@@ -124,11 +121,9 @@ class SpeechSynthesisMock extends EventTarget {
     this.#paused = false
 
     if (entry) {
-      //console.log('on resume found entry', entry.words)
       const numWords = SpeechSynthesisMock.getWords(entry.utterance.text).length
       const numWordsLeft = entry.words.length
 
-      //this.speak(entry.utterance)
       entry.utterance.dispatchEvent(
         new SpeechSynthesisEventMock(numWordsLeft === numWords ? 'start' : 'resume', {
           utterance: entry.utterance

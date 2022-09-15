@@ -344,7 +344,7 @@ class Controller extends EventTarget {
             const endChar = startChar + charLength
             const word = this.text.substring(startChar, endChar)
 
-            if (!isPunctuation(word)) {
+            if (word && !isPunctuation(word)) {
               this.dispatchBoundary({ word, startChar, endChar })
             }
           })
@@ -354,12 +354,14 @@ class Controller extends EventTarget {
       }
 
       if (this.target instanceof HTMLAudioElement) {
+        const target = this.target
+
         this.target.addEventListener('ended', this.dispatchEnd.bind(this))
         this.target.addEventListener('canplay', this.dispatchReady.bind(this), {
           once: true
         })
         this.target.addEventListener('error', () => {
-          const error = (this.target as HTMLAudioElement).error
+          const error = target.error
 
           this.dispatchError(error?.message)
         })
@@ -367,10 +369,10 @@ class Controller extends EventTarget {
         if (this.dispatchBoundaries) {
           this.target.addEventListener('timeupdate', () => {
             // Polly Speech Marks use milliseconds
-            const currentTime = (this.target as HTMLAudioElement).currentTime * 1000
+            const currentTime = target.currentTime * 1000
             const mark = this.getPollySpeechMarkForAudioTime(currentTime)
 
-            if (!this.paused) {
+            if (mark && !this.paused) {
               this.dispatchBoundary({
                 word: mark.value,
                 startChar: mark.start,
