@@ -46,7 +46,7 @@ describe('Controller', () => {
     ]
   }
 
-  it("wraps parts of the SpeechSynthesis and HTMLAudioElement API's", () => {
+  it("wraps parts of the SpeechSynthesis and HTMLAudioElement API's", async () => {
     const voice = global.speechSynthesis.getVoices()[0]
     const controller = new Controller({
       lang: 'en-US',
@@ -59,7 +59,7 @@ describe('Controller', () => {
     }
 
     controller.spokenText = SpeechSynthesisMock.textForTest
-    controller.init()
+    await controller.init()
 
     expect(controller.lang).toBe('en-US')
     expect(controller.rate).toBe(1)
@@ -148,7 +148,7 @@ describe('Controller', () => {
     expect(controller.pitch).toBe(-1)
   })
 
-  it('catches and dispatches fetchAudioData or play errors', async () => {
+  it('catches and dispatches fetchAudioData, play, and event errors', async () => {
     const fetchAudioData = jest.fn<Promise<TTSAudioData>, [string]>(() =>
       Promise.reject(new Error())
     )
@@ -171,6 +171,9 @@ describe('Controller', () => {
       .mockImplementationOnce(() => Promise.reject(new Error()))
     await controller.play()
     expect(onControllerError).toHaveBeenCalledTimes(2)
+
+    synth.dispatchEvent(new Event('error'))
+    expect(onControllerError).toHaveBeenCalledTimes(3)
   })
 
   it('dispatches pause events when calling pause on an utterance', async () => {
