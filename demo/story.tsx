@@ -1,6 +1,6 @@
 import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import { faker } from '@faker-js/faker'
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import type { ChangeEventHandler, ChangeEvent, ReactNode } from 'react'
 import parse from 'html-react-parser'
 import { action } from '@storybook/addon-actions'
@@ -165,9 +165,9 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
       ...args,
       voice,
       children: 'The hook can be used to create custom controls.',
-      onVolumeChange: action('onVolumeChange'),
-      onPitchChange: action('onPitchChange'),
-      onRateChange: action('onRateChange')
+      onVolumeChange: useMemo(() => action('onVolumeChange'), []),
+      onPitchChange: useMemo(() => action('onPitchChange'), []),
+      onRateChange: useMemo(() => action('onRateChange'), [])
     })
   const onMuteChanged = useCallback(() => {
     onToggleMute((wasMuted) => {
