@@ -45,6 +45,12 @@ describe('useTts', () => {
     // Check default state
     expect(result.current.state).toStrictEqual(defaultState)
 
+    // Check that voices get updated
+    act(() => {
+      global.speechSynthesis.dispatchEvent(new Event('voiceschanged'))
+    })
+    expect(global.speechSynthesis.getVoices).toHaveBeenCalled()
+
     // Start coverting text to speech
     act(() => {
       result.current.onPlay()
