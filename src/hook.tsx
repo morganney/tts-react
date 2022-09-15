@@ -349,25 +349,28 @@ const useTts = ({
     ],
     [controller]
   )
-
-  useEffect(() => {
-    const onEnd = () => {
-      dispatch({ type: 'end' })
-    }
-    const onReady = () => {
-      dispatch({ type: 'ready' })
-    }
-    const onErrorHandler: CustomErrorEventListener = (evt) => {
+  // Controller event listeners
+  const onEnd = useCallback(() => {
+    dispatch({ type: 'end' })
+  }, [])
+  const onReady = useCallback(() => {
+    dispatch({ type: 'ready' })
+  }, [])
+  const onErrorHandler: CustomErrorEventListener = useCallback(
+    (evt) => {
       dispatch({ type: 'error' })
 
       if (typeof onError === 'function') {
         onError(evt.detail)
       }
-    }
-    const onBoundary: CustomBoundaryEventListener = (evt) => {
-      dispatch({ type: 'boundary', payload: evt.detail })
-    }
-    const onVolume: CustomNumberEventListener = (evt) => {
+    },
+    [onError]
+  )
+  const onBoundary: CustomBoundaryEventListener = useCallback((evt) => {
+    dispatch({ type: 'boundary', payload: evt.detail })
+  }, [])
+  const onVolume: CustomNumberEventListener = useCallback(
+    (evt) => {
       const volume = evt.detail
 
       if (volume === 0 && !state.isMuted) {
@@ -381,17 +384,27 @@ const useTts = ({
       if (typeof onVolumeChange === 'function') {
         onVolumeChange(volume)
       }
-    }
-    const onPitch: CustomNumberEventListener = (evt) => {
+    },
+    [onVolumeChange, state.isMuted]
+  )
+  const onPitch: CustomNumberEventListener = useCallback(
+    (evt) => {
       if (typeof onPitchChange === 'function') {
         onPitchChange(evt.detail)
       }
-    }
-    const onRate: CustomNumberEventListener = (evt) => {
+    },
+    [onPitchChange]
+  )
+  const onRate: CustomNumberEventListener = useCallback(
+    (evt) => {
       if (typeof onRateChange === 'function') {
         onRateChange(evt.detail)
       }
-    }
+    },
+    [onRateChange]
+  )
+
+  useEffect(() => {
     const onBeforeUnload = () => {
       controller.clear()
     }
@@ -424,13 +437,15 @@ const useTts = ({
       window.removeEventListener('beforeunload', onBeforeUnload)
     }
   }, [
+    onEnd,
+    onReady,
+    onErrorHandler,
+    onBoundary,
+    onVolume,
+    onPitch,
+    onRate,
     controller,
-    markTextAsSpoken,
-    onError,
-    state.isMuted,
-    onVolumeChange,
-    onPitchChange,
-    onRateChange
+    markTextAsSpoken
   ])
 
   useEffect(() => {
@@ -446,13 +461,13 @@ const useTts = ({
       dispatch({ type: 'voices', payload: window.speechSynthesis.getVoices() })
     }
 
-    if (window.speechSynthesis) {
-      window.speechSynthesis.onvoiceschanged = onVoicesChanged
+    if (typeof window.speechSynthesis?.addEventListener === 'function') {
+      window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged)
     }
 
     return () => {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = null
+      if (typeof window.speechSynthesis?.removeEventListener === 'function') {
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
       }
     }
   }, [])
