@@ -40,7 +40,6 @@ interface CustomNumberEventListener {
   (evt: CustomEvent<number>): void
 }
 interface ControllerOptions {
-  text: string
   lang?: string
   voice?: SpeechSynthesisVoice
   dispatchBoundaries?: boolean
@@ -50,34 +49,33 @@ type Target = HTMLAudioElement | SpeechSynthesisUtterance
 type Synthesizer = HTMLAudioElement | SpeechSynthesis
 
 class Controller extends EventTarget {
-  protected readonly text: string
   protected readonly target: Target
   protected readonly synthesizer: Synthesizer
   protected readonly dispatchBoundaries: boolean = false
   protected fetchAudioData: FetchAudioData
   protected marks: PollySpeechMark[] = []
+  protected text = ''
   protected locale = ''
   protected initialized = false
 
-  constructor(options: ControllerOptions) {
+  constructor(options?: ControllerOptions) {
     super()
 
-    this.text = options.text
     this.locale = options?.lang ?? this.locale
     this.synthesizer = window.speechSynthesis
-    this.target = new SpeechSynthesisUtterance(options.text)
+    this.target = new SpeechSynthesisUtterance(this.text)
     this.fetchAudioData = async () => ({ audio: '', marks: [] })
-    this.dispatchBoundaries = options.dispatchBoundaries ?? this.dispatchBoundaries
+    this.dispatchBoundaries = options?.dispatchBoundaries ?? this.dispatchBoundaries
 
-    if (options.fetchAudioData) {
+    if (options?.fetchAudioData) {
       this.target = this.synthesizer = new Audio()
       this.fetchAudioData = options.fetchAudioData
     } else {
-      this.initWebSpeechVoice(options.voice)
+      this.initWebSpeechVoice(options?.voice)
 
       if (window.speechSynthesis) {
         window.speechSynthesis.onvoiceschanged = () => {
-          this.initWebSpeechVoice(options.voice)
+          this.initWebSpeechVoice(options?.voice)
         }
       }
     }
@@ -211,6 +209,14 @@ class Controller extends EventTarget {
     }
 
     return this.target as HTMLAudioElement
+  }
+
+  set spokenText(value: string) {
+    this.text = value
+
+    if (this.target instanceof SpeechSynthesisUtterance) {
+      this.target.text = value
+    }
   }
 
   get paused(): boolean {

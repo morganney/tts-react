@@ -257,10 +257,9 @@ const useTts = ({
         lang,
         voice,
         fetchAudioData,
-        text: spokenText,
         dispatchBoundaries: markTextAsSpoken
       }),
-    [lang, voice, fetchAudioData, spokenText, markTextAsSpoken]
+    [lang, voice, fetchAudioData, markTextAsSpoken]
   )
   const onPlay = useCallback(() => {
     if (state.isPaused) {
@@ -403,6 +402,10 @@ const useTts = ({
     },
     [onRateChange]
   )
+
+  useEffect(() => {
+    controller.spokenText = spokenText
+  }, [spokenText, controller])
 
   useEffect(() => {
     const onBeforeUnload = () => {

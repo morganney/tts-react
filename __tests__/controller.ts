@@ -49,7 +49,6 @@ describe('Controller', () => {
   it("wraps parts of the SpeechSynthesis and HTMLAudioElement API's", () => {
     const voice = global.speechSynthesis.getVoices()[0]
     const controller = new Controller({
-      text: SpeechSynthesisMock.textForTest,
       lang: 'en-US',
       dispatchBoundaries: true,
       voice
@@ -59,6 +58,7 @@ describe('Controller', () => {
       global.speechSynthesis.onvoiceschanged(new Event('voiceschanged'))
     }
 
+    controller.spokenText = SpeechSynthesisMock.textForTest
     controller.init()
 
     expect(controller.lang).toBe('en-US')
@@ -100,8 +100,7 @@ describe('Controller', () => {
     )
     const controller = new Controller({
       fetchAudioData,
-      dispatchBoundaries: true,
-      text: SpeechSynthesisMock.textForTest
+      dispatchBoundaries: true
     })
     const synth = controller.synth as HTMLAudioElement
 
@@ -110,6 +109,7 @@ describe('Controller', () => {
       synth.dispatchEvent(new Event('timeupdate'))
     })
 
+    controller.spokenText = SpeechSynthesisMock.textForTest
     // Wait for the fetchAudioData promise to resolve
     await controller.init()
 
@@ -153,13 +153,13 @@ describe('Controller', () => {
       Promise.reject(new Error())
     )
     const controller = new Controller({
-      fetchAudioData,
-      text: SpeechSynthesisMock.textForTest
+      fetchAudioData
     })
     // No distinction between synthesizer and target when using fetchAudioData
     const synth = controller.utter as HTMLAudioElement
     const onControllerError = jest.fn()
 
+    controller.spokenText = SpeechSynthesisMock.textForTest
     controller.addEventListener(Events.ERROR, onControllerError)
 
     await controller.init()
@@ -175,10 +175,9 @@ describe('Controller', () => {
 
   it('dispatches pause events when calling pause on an utterance', async () => {
     const onPaused = jest.fn()
-    const controller = new Controller({
-      text: SpeechSynthesisMock.textForTest
-    })
+    const controller = new Controller()
 
+    controller.spokenText = SpeechSynthesisMock.textForTest
     controller.addEventListener(Events.PAUSED, onPaused)
 
     await controller.init()
