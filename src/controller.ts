@@ -57,6 +57,7 @@ class Controller extends EventTarget {
   protected fetchAudioData: FetchAudioData
   protected marks: PollySpeechMark[] = []
   protected locale = ''
+  protected initialized = false
 
   constructor(options: ControllerOptions) {
     super()
@@ -316,63 +317,67 @@ class Controller extends EventTarget {
    * Run it as async to allow for the fetchAudioData call to be awaited.
    */
   async init(): Promise<void> {
-    if (this.target instanceof SpeechSynthesisUtterance) {
-      this.target.addEventListener('end', this.dispatchEnd.bind(this))
-      this.target.addEventListener('start', this.dispatchPlaying.bind(this))
-      this.target.addEventListener('resume', this.dispatchPlaying.bind(this))
-      this.target.addEventListener('pause', this.dispatchPaused.bind(this))
-      this.target.addEventListener('error', (evt) => {
-        this.dispatchError(evt.error)
-      })
-
-      if (this.locale) {
-        this.target.lang = this.locale
-      }
-
-      if (this.dispatchBoundaries) {
-        this.target.addEventListener('boundary', (evt) => {
-          const { charIndex: startChar } = evt
-          const charLength = evt.charLength ?? this.getBoundaryWordCharLength(startChar)
-          const endChar = startChar + charLength
-          const word = this.text.substring(startChar, endChar)
-
-          if (!isPunctuation(word)) {
-            this.dispatchBoundary({ word, startChar, endChar })
-          }
+    if (!this.initialized) {
+      if (this.target instanceof SpeechSynthesisUtterance) {
+        this.target.addEventListener('end', this.dispatchEnd.bind(this))
+        this.target.addEventListener('start', this.dispatchPlaying.bind(this))
+        this.target.addEventListener('resume', this.dispatchPlaying.bind(this))
+        this.target.addEventListener('pause', this.dispatchPaused.bind(this))
+        this.target.addEventListener('error', (evt) => {
+          this.dispatchError(evt.error)
         })
+
+        if (this.locale) {
+          this.target.lang = this.locale
+        }
+
+        if (this.dispatchBoundaries) {
+          this.target.addEventListener('boundary', (evt) => {
+            const { charIndex: startChar } = evt
+            const charLength = evt.charLength ?? this.getBoundaryWordCharLength(startChar)
+            const endChar = startChar + charLength
+            const word = this.text.substring(startChar, endChar)
+
+            if (!isPunctuation(word)) {
+              this.dispatchBoundary({ word, startChar, endChar })
+            }
+          })
+        }
+
+        this.dispatchReady()
       }
 
-      this.dispatchReady()
-    }
-
-    if (this.target instanceof HTMLAudioElement) {
-      this.target.addEventListener('ended', this.dispatchEnd.bind(this))
-      this.target.addEventListener('canplay', this.dispatchReady.bind(this), {
-        once: true
-      })
-      this.target.addEventListener('error', () => {
-        const error = (this.target as HTMLAudioElement).error
-
-        this.dispatchError(error?.message)
-      })
-
-      if (this.dispatchBoundaries) {
-        this.target.addEventListener('timeupdate', () => {
-          // Polly Speech Marks use milliseconds
-          const currentTime = (this.target as HTMLAudioElement).currentTime * 1000
-          const mark = this.getPollySpeechMarkForAudioTime(currentTime)
-
-          if (!this.paused) {
-            this.dispatchBoundary({
-              word: mark.value,
-              startChar: mark.start,
-              endChar: mark.end
-            })
-          }
+      if (this.target instanceof HTMLAudioElement) {
+        this.target.addEventListener('ended', this.dispatchEnd.bind(this))
+        this.target.addEventListener('canplay', this.dispatchReady.bind(this), {
+          once: true
         })
+        this.target.addEventListener('error', () => {
+          const error = (this.target as HTMLAudioElement).error
+
+          this.dispatchError(error?.message)
+        })
+
+        if (this.dispatchBoundaries) {
+          this.target.addEventListener('timeupdate', () => {
+            // Polly Speech Marks use milliseconds
+            const currentTime = (this.target as HTMLAudioElement).currentTime * 1000
+            const mark = this.getPollySpeechMarkForAudioTime(currentTime)
+
+            if (!this.paused) {
+              this.dispatchBoundary({
+                word: mark.value,
+                startChar: mark.start,
+                endChar: mark.end
+              })
+            }
+          })
+        }
+
+        this.attachAudioSource()
       }
 
-      this.attachAudioSource()
+      this.initialized = true
     }
   }
 
