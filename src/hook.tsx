@@ -457,7 +457,7 @@ const useTts = ({
       controller.play()
       dispatch({ type: 'play' })
     }
-  }, [autoPlay, controller, state.isReady])
+  }, [autoPlay, controller, state.isReady, spokenText])
 
   useEffect(() => {
     const onVoicesChanged = () => {
