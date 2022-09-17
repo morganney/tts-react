@@ -271,9 +271,14 @@ const useTts = ({
     [lang, voice, fetchAudioData, markTextAsSpoken]
   )
   const onPlay = useCallback(() => {
-    controller.play()
+    if (state.isPaused) {
+      controller.resume()
+    } else {
+      controller.play()
+    }
+
     dispatch({ type: 'play' })
-  }, [controller])
+  }, [controller, state.isPaused])
   const onPause = useCallback(() => {
     controller.pause()
     dispatch({ type: 'pause' })

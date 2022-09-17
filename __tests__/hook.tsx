@@ -153,6 +153,7 @@ describe('useTts', () => {
     act(() => {
       result.current.onPlay()
     })
+    expect(global.speechSynthesis.cancel).toHaveBeenCalled()
     expect(result.current.state.isPlaying).toBe(true)
 
     // Now mute while playing against a SpeechSynthesis instance of the backing controller
@@ -169,7 +170,7 @@ describe('useTts', () => {
      * This is effectively an onReset().
      */
     expect(global.speechSynthesis.resume).toHaveBeenCalled()
-    expect(global.speechSynthesis.cancel).toHaveBeenCalled()
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(2)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(2)
     expect(result.current.state.isPlaying).toBe(true)
 
@@ -186,7 +187,7 @@ describe('useTts', () => {
     })
     expect(result.current.state.isPaused).toBe(false)
     expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(2)
-    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(2)
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(3)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(3)
     expect(result.current.state.isPlaying).toBe(true)
   })
