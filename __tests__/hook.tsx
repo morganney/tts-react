@@ -31,10 +31,15 @@ describe('useTts', () => {
   })
 
   test('it converts text-to-speech from children text and updates state on word boundaries', async () => {
+    const onEnd = jest.fn()
     const { result, waitForNextUpdate } = renderHook(
-      ({ children, markTextAsSpoken }) => useTts({ children, markTextAsSpoken }),
+      ({ children, markTextAsSpoken, onEnd, rate, volume }) =>
+        useTts({ children, markTextAsSpoken, onEnd, rate, volume }),
       {
         initialProps: {
+          onEnd,
+          rate: 0.4,
+          volume: 0.5,
           markTextAsSpoken: true,
           children: <p>{SpeechSynthesisMock.textForTest}</p>
         }
@@ -56,6 +61,8 @@ describe('useTts', () => {
       result.current.onPlay()
     })
     expect(result.current.state.isPlaying).toBe(true)
+    expect(result.current.get.rate()).toBe(0.4)
+    expect(result.current.get.volume()).toBe(0.5)
     expect(global.speechSynthesis.speak).toHaveBeenCalled()
 
     // Check firing of word boundaries and state boundary updates
@@ -74,6 +81,7 @@ describe('useTts', () => {
     })
     await waitForNextUpdate()
     expect(result.current.state.isPlaying).toBe(false)
+    expect(onEnd).toHaveBeenCalled()
   })
 
   it('allows pausing, resuming and stopping of spoken text', () => {

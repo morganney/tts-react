@@ -236,6 +236,7 @@ class Controller extends EventTarget {
 
     if (!Number.isNaN(clamped)) {
       if (this.synthesizer instanceof HTMLAudioElement) {
+        this.synthesizer.defaultPlaybackRate = clamped
         this.synthesizer.playbackRate = clamped
       }
 
@@ -390,7 +391,9 @@ class Controller extends EventTarget {
   }
 
   async play(): Promise<void> {
-    if (this.synthesizer instanceof HTMLAudioElement) {
+    if (this.paused) {
+      await this.resume()
+    } else if (this.synthesizer instanceof HTMLAudioElement) {
       await this.playHtmlAudio()
     } else {
       this.synthesizer.speak(this.target as SpeechSynthesisUtterance)

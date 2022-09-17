@@ -33,6 +33,10 @@ interface TTSHookProps extends MarkStyles {
   lang?: ControllerOptions['lang']
   /** The `SpeechSynthesisUtterance.voice` to use. */
   voice?: ControllerOptions['voice']
+  /** The initial rate of the speaking audio. */
+  rate?: number
+  /** The initial volume of the speaking audio. */
+  volume?: number
   /** Whether the text should be spoken automatically, i.e. on render. */
   autoPlay?: boolean
   /** Whether the spoken word should be wrapped in a `<mark>` element. */
@@ -45,6 +49,8 @@ interface TTSHookProps extends MarkStyles {
   onPitchChange?: (newPitch: number) => void
   /** Callback when there is an error of any kind. */
   onError?: (errorMsg: string) => void
+  /** Calback when the current utterance/audio has ended. */
+  onEnd?: (evt: Event) => void
   /** Function to fetch audio and speech marks for the spoken text. */
   fetchAudioData?: ControllerOptions['fetchAudioData']
 }
@@ -218,10 +224,13 @@ const reducer = (state: TTSHookState, action: Action): TTSHookState => {
 }
 const useTts = ({
   lang,
+  rate,
+  volume,
   voice,
   children,
   markColor,
   markBackgroundColor,
+  onEnd,
   onError,
   onVolumeChange,
   onPitchChange,
@@ -262,14 +271,9 @@ const useTts = ({
     [lang, voice, fetchAudioData, markTextAsSpoken]
   )
   const onPlay = useCallback(() => {
-    if (state.isPaused) {
-      controller.resume()
-    } else {
-      controller.play()
-    }
-
+    controller.play()
     dispatch({ type: 'play' })
-  }, [controller, state.isPaused])
+  }, [controller])
   const onPause = useCallback(() => {
     controller.pause()
     dispatch({ type: 'pause' })
@@ -349,9 +353,16 @@ const useTts = ({
     [controller]
   )
   // Controller event listeners
-  const onEnd = useCallback(() => {
-    dispatch({ type: 'end' })
-  }, [])
+  const onEndHandler = useCallback(
+    (evt: Event) => {
+      dispatch({ type: 'end' })
+
+      if (typeof onEnd === 'function') {
+        onEnd(evt)
+      }
+    },
+    [onEnd]
+  )
   const onReady = useCallback(() => {
     dispatch({ type: 'ready' })
   }, [])
@@ -408,11 +419,16 @@ const useTts = ({
   }, [spokenText, controller])
 
   useEffect(() => {
+    controller.rate = rate ?? 1
+    controller.volume = volume ?? 1
+  }, [controller, rate, volume])
+
+  useEffect(() => {
     const onBeforeUnload = () => {
       controller.clear()
     }
     const initializeListeners = async () => {
-      controller.addEventListener(Events.END, onEnd)
+      controller.addEventListener(Events.END, onEndHandler)
       controller.addEventListener(Events.ERROR, onErrorHandler as EventListener)
       controller.addEventListener(Events.READY, onReady)
       controller.addEventListener(Events.VOLUME, onVolume as EventListener)
@@ -430,7 +446,7 @@ const useTts = ({
     initializeListeners()
 
     return () => {
-      controller.removeEventListener(Events.END, onEnd)
+      controller.removeEventListener(Events.END, onEndHandler)
       controller.removeEventListener(Events.ERROR, onErrorHandler as EventListener)
       controller.removeEventListener(Events.READY, onReady)
       controller.removeEventListener(Events.BOUNDARY, onBoundary as EventListener)
@@ -440,7 +456,7 @@ const useTts = ({
       window.removeEventListener('beforeunload', onBeforeUnload)
     }
   }, [
-    onEnd,
+    onEndHandler,
     onReady,
     onErrorHandler,
     onBoundary,
