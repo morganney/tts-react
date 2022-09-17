@@ -167,10 +167,7 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
       children: 'The hook can be used to create custom controls.',
       onVolumeChange: useMemo(() => action('onVolumeChange'), []),
       onPitchChange: useMemo(() => action('onPitchChange'), []),
-      //onRateChange: useMemo(() => action('onRateChange'), [])
-      onRateChange: useCallback((newRate) => {
-        setRate(newRate)
-      }, [])
+      onRateChange: useMemo(() => action('onRateChange'), [])
     })
   const onMuteChanged = useCallback(() => {
     onToggleMute((wasMuted) => {
