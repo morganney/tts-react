@@ -23,6 +23,7 @@ describe('TextToSpeech', () => {
     act(() => {
       fireEvent.click(getByRole('button', { name: 'Play' }))
     })
+    expect(global.speechSynthesis.cancel).toHaveBeenCalled()
     expect(global.speechSynthesis.speak).toHaveBeenCalled()
     expect(getByRole('button', { name: 'Pause' })).toBeInTheDocument()
 
@@ -39,8 +40,8 @@ describe('TextToSpeech', () => {
       fireEvent.click(getByRole('button', { name: 'Mute' }))
     })
     expect(onMuteToggled).toHaveBeenCalledWith(false)
-    // Because we are currently paused (so no reset)
-    expect(global.speechSynthesis.cancel).not.toHaveBeenCalled()
+    // Cancel only called once thus far as we are currently paused (so no reset)
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(1)
     expect(global.speechSynthesis.resume).not.toHaveBeenCalled()
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(1)
   })

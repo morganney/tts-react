@@ -68,6 +68,8 @@ describe('Controller', () => {
     expect(controller.preservesPitch).toBe(false)
     expect(controller.paused).toBe(false)
     controller.play()
+    // Cancel before play to clear any utterances in the queue
+    expect(global.speechSynthesis.cancel).toHaveBeenCalled()
     expect(global.speechSynthesis.speak).toHaveBeenCalledWith(
       expect.objectContaining({ text: SpeechSynthesisMock.textForTest })
     )
@@ -76,21 +78,22 @@ describe('Controller', () => {
     controller.resume()
     expect(global.speechSynthesis.resume).toHaveBeenCalled()
     controller.clear()
-    expect(global.speechSynthesis.cancel).toHaveBeenCalled()
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(2)
     controller.play()
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(2)
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(3)
     controller.mute()
     expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(2)
-    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(2)
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(4)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(3)
     controller.unmute(0.5)
     expect(controller.volume).toBe(0.5)
     expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(3)
-    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(3)
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(5)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(4)
     controller.reset()
     expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(4)
-    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(4)
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(6)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(5)
   })
 
@@ -131,8 +134,10 @@ describe('Controller', () => {
     controller.reset()
     expect(global.HTMLMediaElement.prototype.load).toHaveBeenCalled()
     expect(global.HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(3)
+    // Play request a clear() which for HTMLAudioElement calls pause
+    expect(global.HTMLAudioElement.prototype.pause).toHaveBeenCalledTimes(2)
     controller.clear()
-    expect(global.HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(2)
+    expect(global.HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(3)
     expect(synth.currentTime).toBe(0)
 
     // Check that the rate getter/setter abstracts playbackRate
