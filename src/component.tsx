@@ -80,7 +80,9 @@ const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
  */
 const TextToSpeech = ({
   lang,
+  rate,
   voice,
+  volume,
   children,
   onError,
   onMuteToggled,
@@ -97,7 +99,9 @@ const TextToSpeech = ({
 }: TTSProps) => {
   const { state, onReset, onToggleMute, onPlayPause, onPlayStop, ttsChildren } = useTts({
     lang,
+    rate,
     voice,
+    volume,
     children,
     onError,
     fetchAudioData,

@@ -292,7 +292,7 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
             min="0.1"
             max="4"
             step="0.1"
-            defaultValue={'1'}
+            defaultValue="1"
             disabled={state.isPlaying}
             onChange={onRateHandler}
           />
@@ -457,6 +457,12 @@ Hook.argTypes = {
   },
   useStopOverPause: {
     control: false
+  },
+  rate: {
+    control: false
+  },
+  volume: {
+    control: false
   }
 }
 SpeakComponent.argTypes = {
@@ -490,6 +496,8 @@ export default {
   component: TextToSpeech,
   args: {
     autoPlay: false,
+    rate: 1,
+    volume: 1,
     size: Sizes.MEDIUM,
     allowMuting: true,
     align: 'horizontal',
@@ -510,6 +518,22 @@ export default {
     },
     voice: {
       control: false
+    },
+    rate: {
+      control: {
+        type: 'number',
+        min: 0.1,
+        max: 4,
+        step: 0.1
+      }
+    },
+    volume: {
+      control: {
+        type: 'number',
+        min: 0,
+        max: 1,
+        step: 0.1
+      }
     },
     children: {
       control: false
