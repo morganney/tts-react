@@ -107,8 +107,14 @@ describe('Controller', () => {
     })
     const synth = controller.synth as HTMLAudioElement
 
+    // Return two mocked currentTime's that coincide with time entries in the mocked marks
+    jest
+      .spyOn(global.HTMLMediaElement.prototype, 'currentTime', 'get')
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(150)
+    // Now fire two 'timeupdate' events to trigger word boundaries twice (to run through some more branches)
     global.HTMLMediaElement.prototype.play = jest.fn(async () => {
-      // Fire a 'timeupdate' event to trigger word boundaries
+      synth.dispatchEvent(new Event('timeupdate'))
       synth.dispatchEvent(new Event('timeupdate'))
     })
 
@@ -134,7 +140,7 @@ describe('Controller', () => {
     controller.reset()
     expect(global.HTMLMediaElement.prototype.load).toHaveBeenCalled()
     expect(global.HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(3)
-    // Play request a clear() which for HTMLAudioElement calls pause
+    // Play invokes clear() which for HTMLAudioElement calls pause
     expect(global.HTMLAudioElement.prototype.pause).toHaveBeenCalledTimes(2)
     controller.clear()
     expect(global.HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(3)
@@ -192,5 +198,35 @@ describe('Controller', () => {
 
     controller.utter.dispatchEvent(new Event('pause'))
     expect(onPaused).toHaveBeenCalled()
+  })
+
+  it('removes listeners when calling destroy', async () => {
+    const onPlay = jest.fn()
+    const controller = new Controller()
+
+    controller.spokenText = SpeechSynthesisMock.textForTest
+    controller.addEventListener(Events.PLAYING, onPlay)
+
+    // First call destroy() to show that new abort signals are created when initializing listeners
+    controller.destroy()
+
+    // Set up listeners
+    await controller.init()
+
+    // Start playing
+    await controller.play()
+    expect(onPlay).toHaveBeenCalled()
+
+    // Stop playing
+    controller.clear()
+
+    // Destroy listeners
+    controller.destroy()
+
+    // Start playing, inspect that onPlay was not called again
+    await controller.play()
+    expect(onPlay).not.toHaveBeenCalledTimes(2)
+
+    // Can only call init() once per lifecycle
   })
 })

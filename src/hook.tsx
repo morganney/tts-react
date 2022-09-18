@@ -451,6 +451,7 @@ const useTts = ({
     initializeListeners()
 
     return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload)
       controller.removeEventListener(Events.END, onEndHandler)
       controller.removeEventListener(Events.ERROR, onErrorHandler as EventListener)
       controller.removeEventListener(Events.READY, onReady)
@@ -458,7 +459,7 @@ const useTts = ({
       controller.removeEventListener(Events.VOLUME, onVolume as EventListener)
       controller.removeEventListener(Events.PITCH, onPitch as EventListener)
       controller.removeEventListener(Events.RATE, onRate as EventListener)
-      window.removeEventListener('beforeunload', onBeforeUnload)
+      controller.destroy()
     }
   }, [
     onEndHandler,
