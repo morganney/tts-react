@@ -54,7 +54,7 @@ interface CustomProps extends TTSHookProps {
 }
 
 const CustomTTSComponent = ({ children, highlight = false }: CustomProps) => {
-  const { ttsChildren, state, onPlay, onStop, onPause } = useTts({
+  const { ttsChildren, state, play, stop, pause } = useTts({
     children,
     markTextAsSpoken: highlight
   })
@@ -62,9 +62,9 @@ const CustomTTSComponent = ({ children, highlight = false }: CustomProps) => {
   return (
     <div>
       <>
-        <button disabled={state.isPlaying} onClick={onPlay}>Play</button>
-        <button onClick={onPause}>Pause</button>
-        <button onClick={onStop}>Stop</button>
+        <button disabled={state.isPlaying} onClick={play}>Play</button>
+        <button disabled={!state.isPlaying} onClick={pause}>Pause</button>
+        <button onClick={stop}>Stop</button>
       </>
       {ttsChildren}
     </div>
@@ -105,36 +105,72 @@ const App = () => {
 The hook returns the internal state of the audio being spoken, getters/setters of audio attributes, callbacks that can be used to control playing/stopping/pausing/etc. of the audio, and modified `children` if using `markTextAsSpoken`. The parameters accepted are described in the [Props](#props) section. The response object is described by the `TTSHookResponse` type.
 
 ```ts
-const useTts = ({
+const {
+  get,
+  set,
+  state,
+  spokenText,
+  ttsChildren,
+  play,
+  stop,
+  pause,
+  replay,
+  playOrPause,
+  playOrStop,
+  toggleMute
+} = useTts({
   lang,
   voice,
   children,
+  autoPlay,
+  markTextAsSpoken,
   markColor,
   markBackgroundColor,
+  onStart,
+  onBoundary,
+  onPause,
+  onEnd,
   onError,
   onVolumeChange,
   onPitchChange,
   onRateChange,
-  fetchAudioData,
-  autoPlay = false,
-  markTextAsSpoken = false
-}: TTSHookProps): TTSHookResponse => {
-  // ...
-  return {
-    get,
-    set,
-    state,
-    spokenText,
-    ttsChildren,
-    onPlay,
-    onStop,
-    onPause,
-    onReset,
-    onPlayPause,
-    onToggleMute
-  }
-}
+  fetchAudioData
+})
 
+interface TTSHookProps extends MarkStyles {
+  /** The spoken text is extracted from here. */
+  children: ReactNode
+  /** The `SpeechSynthesisUtterance.lang` to use. */
+  lang?: string
+  /** The `SpeechSynthesisUtterance.voice` to use. */
+  voice?: SpeechSynthesisVoice
+  /** The initial rate of the speaking audio. */
+  rate?: number
+  /** The initial volume of the speaking audio. */
+  volume?: number
+  /** Whether the text should be spoken automatically, i.e. on render. */
+  autoPlay?: boolean
+  /** Whether the spoken word should be wrapped in a `<mark>` element. */
+  markTextAsSpoken?: boolean
+  /** Callback when the volume is changed.  */
+  onVolumeChange?: (newVolume: number) => void
+  /** Callback when the rate is changed.  */
+  onRateChange?: (newRate: number) => void
+  /** Callback when the pitch is changed.  */
+  onPitchChange?: (newPitch: number) => void
+  /** Callback when there is an error of any kind. */
+  onError?: (msg: string) => void
+  /** Callback when speaking/audio starts playing. */
+  onStart?: (evt: SpeechSynthesisEvent | Event) => void
+  /** Callback when the speaking/audio is paused. */
+  onPause?: (evt: SpeechSynthesisEvent | Event) => void
+  /** Calback when the current utterance/audio has ended. */
+  onEnd?: (evt: SpeechSynthesisEvent | Event) => void
+  /** Callback when a word boundary/mark has been reached. */
+  onBoundary?: (evt: SpeechSynthesisEvent | Event) => void
+  /** Function to fetch audio and speech marks for the spoken text. */
+  fetchAudioData?: (spokenText: string) => Promise<TTSAudioData>
+}
 interface TTSHookResponse {
   set: {
     lang: (value: string) => void
@@ -150,15 +186,21 @@ interface TTSHookResponse {
     volume: () => number
     preservesPitch: () => boolean
   }
+  /** State of the current speaking/audio. */
   state: TTSHookState
+  /** The text extracted from the children elements and used to synthesize speech. */
   spokenText: string
-  onPlay: () => void
-  onStop: () => void
-  onPause: () => void
-  onReset: () => void
-  onToggleMute: (callback?: (wasMuted: boolean) => void) => void
-  onPlayStop: () => void
-  onPlayPause: () => void
+  play: () => void
+  stop: () => void
+  pause: () => void
+  replay: () => void
+  /** Toggles between muted/unmuted, i.e. volume is zero or non-zero. */
+  toggleMute: (callback?: (wasMuted: boolean) => void) => void
+  /** Toggles between play/stop. */
+  playOrStop: () => void
+  /** Toggles between play/pause. */
+  playOrPause: () => void
+  /** The original children with a possible <mark> included if using `markTextAsSpoken`. */
   ttsChildren: ReactNode
 }
 interface TTSHookState {
@@ -221,7 +263,14 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 |fetchAudioData|no|`(text: string) => Promise<TTSAudioData>`|none|Function to return the optional `SpeechMarks[]` and `audio` URL for the text to be spoken. See [fetchAudioData](#fetchaudiodata) for more details.|
 |<sup>`*`</sup>allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio.|
 |<sup>`*`</sup>onMuteToggled|no|`(wasMuted: boolean) => void`|none|Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.|
-|onError|no|`(evt: CustomEvent<string>) => void`|none|Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided in `evt.detail`.|
+|onStart|no|`(evt: SpeechSynthesisEvent \| Event) => void`|none|Callback when the speaking/audio has started (or resumed) playing.|
+|onPause|no|`(evt: SpeechSynthesisEvent \| Event) => void`|none|Callback when the speaking/audio has been paused.|
+|onEnd|no|`(evt: SpeechSynthesisEvent \| Event) => void`|none|Callback when the speaking/audio has stopped.|
+|onBoundary|no|`(boundary: TTSBoundaryUpdate, evt: SpeechSynthesisEvent \| Event) => void`|none|Callback when a word boundary/mark has been reached.|
+|onError|no|`(msg: string) => void`|none|Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided.|
+|onVolumeChange|no|`(newVolume: number) => void`|none|Callback when the volume has changed.|
+|onRateChange|no|`(newRate: number) => void`|none|Callback when the rate has changed.|
+|onPitchChange|no|`(newPitch: number) => void`|none|Callback when the pitch has changed.|
 |<sup>`*`</sup>align|no|`'horizontal' \| 'vertical'`|`'horizontal'`|How to align the controls within the `TextToSpeech` component.|
 |<sup>`*`</sup>size|no|`'small' \| 'medium' \| 'large'`|`'medium'`|The relative size of the controls within the `TextToSpeech` component.|
 |<sup>`*`</sup>position|no|`'topRight' \| 'topLeft' \| 'bottomRight' \| 'bottomLeft'`|`'topRight'`|The relative positioning of the controls within the `TextToSpeech` component.|

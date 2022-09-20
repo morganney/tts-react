@@ -49,7 +49,7 @@ const wrap = (): CSSProperties => {
 }
 const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
   return {
-    display: 'flex',
+    display: 'inline-flex',
     flexDirection: align === 'horizontal' ? 'row' : 'column',
     position: 'absolute',
     ...getTRBL(position),
@@ -84,8 +84,15 @@ const TextToSpeech = ({
   voice,
   volume,
   children,
+  onStart,
+  onPause,
+  onBoundary,
+  onEnd,
   onError,
   onMuteToggled,
+  onVolumeChange,
+  onPitchChange,
+  onRateChange,
   fetchAudioData,
   markColor,
   markBackgroundColor,
@@ -97,13 +104,20 @@ const TextToSpeech = ({
   markTextAsSpoken = false,
   useStopOverPause = false
 }: TTSProps) => {
-  const { state, onReset, onToggleMute, onPlayPause, onPlayStop, ttsChildren } = useTts({
+  const { state, replay, toggleMute, playOrPause, playOrStop, ttsChildren } = useTts({
     lang,
     rate,
     voice,
     volume,
     children,
+    onStart,
+    onPause,
+    onBoundary,
+    onEnd,
     onError,
+    onVolumeChange,
+    onPitchChange,
+    onRateChange,
     fetchAudioData,
     autoPlay,
     markColor,
@@ -118,17 +132,17 @@ const TextToSpeech = ({
   const [type, title, onClick] = useMemo(() => {
     if (state.isPlaying) {
       if (useStopOverPause) {
-        return ['stop', 'Stop', onPlayStop]
+        return ['stop', 'Stop', playOrStop]
       }
 
-      return ['pause', 'Pause', onPlayPause]
+      return ['pause', 'Pause', playOrPause]
     }
 
-    return ['play', 'Play', onPlayPause]
-  }, [state.isPlaying, useStopOverPause, onPlayStop, onPlayPause])
+    return ['play', 'Play', playOrPause]
+  }, [state.isPlaying, useStopOverPause, playOrStop, playOrPause])
   const handleOnMuteClicked = useCallback(() => {
-    onToggleMute(onMuteToggled)
-  }, [onToggleMute, onMuteToggled])
+    toggleMute(onMuteToggled)
+  }, [toggleMute, onMuteToggled])
 
   return (
     <div style={wrapStyle} className="tts-react">
@@ -158,7 +172,7 @@ const TextToSpeech = ({
               size={size}
               title="Replay"
               aria-label="Replay"
-              onClick={onReset}
+              onClick={replay}
             />
           )}
         </aside>

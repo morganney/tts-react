@@ -58,7 +58,7 @@ describe('Controller', () => {
       global.speechSynthesis.onvoiceschanged(new Event('voiceschanged'))
     }
 
-    controller.spokenText = SpeechSynthesisMock.textForTest
+    controller.text = SpeechSynthesisMock.textForTest
     await controller.init()
 
     expect(controller.lang).toBe('en-US')
@@ -68,8 +68,6 @@ describe('Controller', () => {
     expect(controller.preservesPitch).toBe(false)
     expect(controller.paused).toBe(false)
     controller.play()
-    // Cancel before play to clear any utterances in the queue
-    expect(global.speechSynthesis.cancel).toHaveBeenCalled()
     expect(global.speechSynthesis.speak).toHaveBeenCalledWith(
       expect.objectContaining({ text: SpeechSynthesisMock.textForTest })
     )
@@ -77,23 +75,22 @@ describe('Controller', () => {
     expect(global.speechSynthesis.pause).toHaveBeenCalled()
     controller.resume()
     expect(global.speechSynthesis.resume).toHaveBeenCalled()
-    controller.clear()
-    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(2)
+    controller.cancel()
+    expect(global.speechSynthesis.cancel).toHaveBeenCalled()
     controller.play()
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(2)
-    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(3)
     controller.mute()
     expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(2)
-    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(4)
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(2)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(3)
     controller.unmute(0.5)
     expect(controller.volume).toBe(0.5)
     expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(3)
-    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(5)
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(3)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(4)
-    controller.reset()
+    controller.replay()
     expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(4)
-    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(6)
+    expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(4)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(5)
   })
 
@@ -105,7 +102,7 @@ describe('Controller', () => {
       fetchAudioData,
       dispatchBoundaries: true
     })
-    const synth = controller.synth as HTMLAudioElement
+    const synth = controller.synthesizer as HTMLAudioElement
 
     // Return two mocked currentTime's that coincide with time entries in the mocked marks
     jest
@@ -118,7 +115,7 @@ describe('Controller', () => {
       synth.dispatchEvent(new Event('timeupdate'))
     })
 
-    controller.spokenText = SpeechSynthesisMock.textForTest
+    controller.text = SpeechSynthesisMock.textForTest
     // Wait for the fetchAudioData promise to resolve
     await controller.init()
 
@@ -137,14 +134,11 @@ describe('Controller', () => {
     expect(global.HTMLMediaElement.prototype.pause).toHaveBeenCalled()
     controller.resume()
     expect(global.HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(2)
-    controller.reset()
+    controller.replay()
     expect(global.HTMLMediaElement.prototype.load).toHaveBeenCalled()
     expect(global.HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(3)
-    // Play invokes clear() which for HTMLAudioElement calls pause
-    expect(global.HTMLAudioElement.prototype.pause).toHaveBeenCalledTimes(2)
-    controller.clear()
-    expect(global.HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(3)
-    expect(synth.currentTime).toBe(0)
+    controller.cancel()
+    expect(global.HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(2)
 
     // Check that the rate getter/setter abstracts playbackRate
     expect(controller.rate).toBe(1)
@@ -167,10 +161,10 @@ describe('Controller', () => {
       fetchAudioData
     })
     // No distinction between synthesizer and target when using fetchAudioData
-    const synth = controller.utter as HTMLAudioElement
+    const synth = controller.target as HTMLAudioElement
     const onControllerError = jest.fn()
 
-    controller.spokenText = SpeechSynthesisMock.textForTest
+    controller.text = SpeechSynthesisMock.textForTest
     controller.addEventListener(Events.ERROR, onControllerError)
 
     await controller.init()
@@ -191,42 +185,12 @@ describe('Controller', () => {
     const onPaused = jest.fn()
     const controller = new Controller()
 
-    controller.spokenText = SpeechSynthesisMock.textForTest
+    controller.text = SpeechSynthesisMock.textForTest
     controller.addEventListener(Events.PAUSED, onPaused)
 
     await controller.init()
 
-    controller.utter.dispatchEvent(new Event('pause'))
+    controller.target.dispatchEvent(new Event('pause'))
     expect(onPaused).toHaveBeenCalled()
-  })
-
-  it('removes listeners when calling destroy', async () => {
-    const onPlay = jest.fn()
-    const controller = new Controller()
-
-    controller.spokenText = SpeechSynthesisMock.textForTest
-    controller.addEventListener(Events.PLAYING, onPlay)
-
-    // First call destroy() to show that new abort signals are created when initializing listeners
-    controller.destroy()
-
-    // Set up listeners
-    await controller.init()
-
-    // Start playing
-    await controller.play()
-    expect(onPlay).toHaveBeenCalled()
-
-    // Stop playing
-    controller.clear()
-
-    // Destroy listeners
-    controller.destroy()
-
-    // Start playing, inspect that onPlay was not called again
-    await controller.play()
-    expect(onPlay).not.toHaveBeenCalledTimes(2)
-
-    // Can only call init() once per lifecycle
   })
 })

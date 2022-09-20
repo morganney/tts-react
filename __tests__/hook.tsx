@@ -2,6 +2,7 @@ import { describe, test, jest, beforeEach } from '@jest/globals'
 import { renderHook, act } from '@testing-library/react-hooks'
 
 import { SpeechSynthesisMock } from './speechSynthesis.mock'
+import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock'
 import { useTts } from '../src/hook'
 import { stripPunctuation } from '../src/utils'
 
@@ -25,19 +26,30 @@ describe('useTts', () => {
     isError: false,
     isReady: true
   }
+  const advanceBy = async (steps: number) => {
+    for (let i = 0; i < steps; i++) {
+      await act(async () => {
+        jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
+      })
+    }
+  }
 
   beforeEach(() => {
     words = SpeechSynthesisMock.getWords(SpeechSynthesisMock.textForTest)
   })
 
   test('it converts text-to-speech from children text and updates state on word boundaries', async () => {
+    const onStart = jest.fn()
     const onEnd = jest.fn()
-    const { result, waitForNextUpdate } = renderHook(
-      ({ children, markTextAsSpoken, onEnd, rate, volume }) =>
-        useTts({ children, markTextAsSpoken, onEnd, rate, volume }),
+    const onBoundary = jest.fn()
+    const { result } = renderHook(
+      ({ children, markTextAsSpoken, onStart, onEnd, onBoundary, rate, volume }) =>
+        useTts({ children, markTextAsSpoken, onStart, onEnd, onBoundary, rate, volume }),
       {
         initialProps: {
+          onStart,
           onEnd,
+          onBoundary,
           rate: 0.4,
           volume: 0.5,
           markTextAsSpoken: true,
@@ -51,15 +63,16 @@ describe('useTts', () => {
     expect(result.current.state).toStrictEqual(defaultState)
 
     // Check that voices get updated
-    act(() => {
+    await act(async () => {
       global.speechSynthesis.dispatchEvent(new Event('voiceschanged'))
     })
     expect(global.speechSynthesis.getVoices).toHaveBeenCalled()
 
     // Start coverting text to speech
-    act(() => {
-      result.current.onPlay()
+    await act(async () => {
+      result.current.play()
     })
+    expect(onStart).toHaveBeenCalled()
     expect(result.current.state.isPlaying).toBe(true)
     expect(result.current.get.rate()).toBe(0.4)
     expect(result.current.get.volume()).toBe(0.5)
@@ -67,64 +80,80 @@ describe('useTts', () => {
 
     // Check firing of word boundaries and state boundary updates
     while (word) {
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
       })
-      await waitForNextUpdate()
       expect(result.current.state.boundary.word).toBe(stripPunctuation(word))
+      expect(onBoundary).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          word: stripPunctuation(word)
+        }),
+        expect.any(SpeechSynthesisEventMock)
+      )
       word = words.shift()
     }
 
     // Wait for firing of 'end' event on utterance
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
     })
-    await waitForNextUpdate()
     expect(result.current.state.isPlaying).toBe(false)
     expect(onEnd).toHaveBeenCalled()
   })
 
-  it('allows pausing, resuming and stopping of spoken text', () => {
-    const { result } = renderHook(({ children }) => useTts({ children }), {
-      initialProps: {
-        children: SpeechSynthesisMock.textForTest
+  it('allows pausing, resuming and stopping of spoken text', async () => {
+    const onPause = jest.fn()
+    const { result } = renderHook(
+      ({ children, onPause }) => useTts({ children, onPause }),
+      {
+        initialProps: {
+          onPause,
+          children: SpeechSynthesisMock.textForTest
+        }
       }
-    })
+    )
 
     // Check default state and play
     expect(result.current.state).toStrictEqual(defaultState)
     act(() => {
-      result.current.onPlay()
+      result.current.play()
     })
     expect(result.current.state.isPlaying).toBe(true)
     expect(global.speechSynthesis.speak).toHaveBeenCalled()
 
+    await advanceBy(1)
+    expect(result.current.state.boundary.word).toBe(words[0])
+
     // Now pause
-    act(() => {
-      result.current.onPause()
+    await act(async () => {
+      result.current.pause()
     })
+    //expect(onPause).toHaveBeenCalled() TODO: Better mocking?
     expect(global.speechSynthesis.pause).toHaveBeenCalled()
+    expect(global.speechSynthesis.speaking).toBe(true)
     expect(result.current.state.isPaused).toBe(true)
     expect(result.current.state.isPlaying).toBe(false)
 
-    // Now resume (via useTts.onPlay)
-    act(() => {
-      result.current.onPlay()
+    // Now resume playing
+    await act(async () => {
+      result.current.play()
     })
+    await advanceBy(1)
     expect(global.speechSynthesis.resume).toHaveBeenCalled()
     expect(result.current.state.isPaused).toBe(false)
     expect(result.current.state.isPlaying).toBe(true)
+    expect(result.current.state.boundary.word).toBe(words[1])
 
     // Now stop
-    act(() => {
-      result.current.onStop()
+    await act(async () => {
+      result.current.stop()
     })
     expect(global.speechSynthesis.cancel).toHaveBeenCalled()
     expect(result.current.state.isPaused).toBe(false)
     expect(result.current.state.isPlaying).toBe(false)
   })
 
-  it('returns a handler for toggling mute, and reset(replay)ing the spoken text', () => {
+  it('returns a handler for toggling mute, and reset(replay)ing the spoken text', async () => {
     const onMutedCallback = jest.fn()
     const { result } = renderHook(({ children }) => useTts({ children }), {
       initialProps: {
@@ -136,63 +165,59 @@ describe('useTts', () => {
     expect(result.current.state).toStrictEqual(defaultState)
 
     // Now activate mute
-    act(() => {
-      result.current.onToggleMute(onMutedCallback)
+    await act(async () => {
+      result.current.toggleMute(onMutedCallback)
     })
     expect(result.current.state.isMuted).toBe(true)
     expect(onMutedCallback).toHaveBeenCalledWith(false)
 
     // Now activate unmute
-    act(() => {
-      result.current.onToggleMute(onMutedCallback)
+    await act(async () => {
+      result.current.toggleMute(onMutedCallback)
     })
     expect(result.current.state.isMuted).toBe(false)
     expect(onMutedCallback).toHaveBeenLastCalledWith(true)
 
     // Now play
-    act(() => {
-      result.current.onPlay()
+    await act(async () => {
+      result.current.play()
     })
     expect(global.speechSynthesis.cancel).toHaveBeenCalled()
+    expect(global.speechSynthesis.resume).toHaveBeenCalled()
+    expect(global.speechSynthesis.speak).toHaveBeenCalled()
     expect(result.current.state.isPlaying).toBe(true)
 
     // Now mute while playing against a SpeechSynthesis instance of the backing controller
-    act(() => {
-      result.current.onToggleMute(onMutedCallback)
+    await act(async () => {
+      result.current.toggleMute(onMutedCallback)
     })
     expect(result.current.state.isMuted).toBe(true)
     expect(onMutedCallback).toHaveBeenLastCalledWith(false)
-    /**
-     * Check that the synthesizer resumed, cancelled and then started speaking again.
-     * Not all user agents will change the volume of an utterance that is currently
-     * beig spoken, even if utterance.voice was changed.
-     *
-     * This is effectively an onReset().
-     */
-    expect(global.speechSynthesis.resume).toHaveBeenCalled()
+    // Check that the syntehsizer resumed, cancelled, and then started speaking again (effectively a replay).
+    expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(2)
     expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(2)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(2)
     expect(result.current.state.isPlaying).toBe(true)
 
     // Now Pause
-    act(() => {
-      result.current.onPause()
+    await act(async () => {
+      result.current.pause()
     })
     expect(result.current.state.isPaused).toBe(true)
     expect(result.current.state.isPlaying).toBe(false)
 
-    // Now reset
-    act(() => {
-      result.current.onReset()
+    // Now replay
+    await act(async () => {
+      result.current.replay()
     })
     expect(result.current.state.isPaused).toBe(false)
-    expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(2)
+    expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(3)
     expect(global.speechSynthesis.cancel).toHaveBeenCalledTimes(3)
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(3)
     expect(result.current.state.isPlaying).toBe(true)
   })
 
-  it('returns getters/setters for speaking attributes, and callbacks when they change', () => {
+  it('returns getters/setters for speaking attributes, and callbacks when they change', async () => {
     const onVolumeChange = jest.fn()
     const onPitchChange = jest.fn()
     const onRateChange = jest.fn()
@@ -226,9 +251,17 @@ describe('useTts', () => {
     expect(onPitchChange).toHaveBeenCalledWith(0.5)
 
     expect(result.current.get.volume()).toBe(1)
-    result.current.set.volume(0.2)
-    expect(result.current.get.volume()).toBe(0.2)
-    expect(onVolumeChange).toHaveBeenCalledWith(0.2)
+    await act(async () => {
+      result.current.set.volume(0)
+    })
+    expect(result.current.state.isMuted).toBe(true)
+    expect(result.current.get.volume()).toBe(0)
+    expect(onVolumeChange).toHaveBeenCalledWith(0)
+    await act(async () => {
+      result.current.set.volume(0.5)
+    })
+    expect(result.current.state.isMuted).toBe(false)
+    expect(onVolumeChange).toHaveBeenCalledWith(0.5)
 
     // SpeechSynthesis does not support preservesPitch
     expect(result.current.get.preservesPitch()).toBe(false)
@@ -236,7 +269,7 @@ describe('useTts', () => {
     expect(result.current.get.preservesPitch()).toBe(false)
   })
 
-  it('plays on render when using autoPlay', async () => {
+  it('plays on render when using autoPlay', () => {
     const { result } = renderHook(
       ({ children, autoPlay }) => useTts({ children, autoPlay }),
       {
@@ -254,5 +287,34 @@ describe('useTts', () => {
         text: SpeechSynthesisMock.textForTest
       })
     )
+  })
+
+  it('accepts an onError callback', async () => {
+    const onError = jest.fn()
+    const { result } = renderHook(
+      ({ children, onError }) => useTts({ children, onError }),
+      {
+        initialProps: {
+          onError,
+          children: SpeechSynthesisMock.textForTest
+        }
+      }
+    )
+
+    SpeechSynthesisMock.triggerError = true
+    await act(async () => {
+      result.current.play()
+    })
+    expect(onError).toHaveBeenCalled()
+  })
+
+  it('cancels speaking before the window unloads', () => {
+    renderHook(({ children }) => useTts({ children }), {
+      initialProps: {
+        children: SpeechSynthesisMock.textForTest
+      }
+    })
+    global.dispatchEvent(new Event('beforeunload'))
+    expect(global.speechSynthesis.cancel).toHaveBeenCalled()
   })
 })

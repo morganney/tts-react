@@ -1,13 +1,19 @@
 import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import { faker } from '@faker-js/faker'
-import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import type { ChangeEventHandler, ChangeEvent, ReactNode } from 'react'
 import parse from 'html-react-parser'
-import { action } from '@storybook/addon-actions'
 
 import { audiosrc } from './assets'
-import { TextToSpeech, Positions, Sizes, useTts } from '../src'
-import type { TTSHookProps } from '../src'
+import {
+  TextToSpeech,
+  Positions,
+  Sizes,
+  useTts,
+  TTSAudioData,
+  TTSHookResponse
+} from '../src'
+import type { TTSHookProps, TTSEventHandler } from '../src'
 
 type SpeakProps = Pick<TTSHookProps, 'children'>
 let voices: SpeechSynthesisVoice[] = []
@@ -27,6 +33,23 @@ const capitalize = (text: string) => {
 const Label = ({ children }: { children: ReactNode }) => {
   return <label style={{ display: 'inline-flex' }}>{children}</label>
 }
+const fetchAudioData = () =>
+  new Promise<TTSAudioData>((resolve) => {
+    setTimeout(() => {
+      resolve({
+        marks: [
+          { time: 6, type: 'word', start: 0, end: 3, value: 'You' },
+          { time: 126, type: 'word', start: 4, end: 7, value: 'can' },
+          { time: 292, type: 'word', start: 8, end: 11, value: 'use' },
+          { time: 495, type: 'word', start: 12, end: 18, value: 'Amazon' },
+          { time: 936, type: 'word', start: 19, end: 24, value: 'Polly' },
+          { time: 1314, type: 'word', start: 25, end: 29, value: 'with' },
+          { time: 1481, type: 'word', start: 30, end: 45, value: 'fetchAudioData' }
+        ],
+        audio: audiosrc
+      })
+    }, 1000)
+  })
 const RandomSentence: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args}>
@@ -49,6 +72,13 @@ const Languages: ComponentStory<typeof TextToSpeech> = (args) => {
     toLocales(window.speechSynthesis?.getVoices() ?? [])
   )
   const [lang, setLang] = useState<string | undefined>()
+  const [disabled, setDisabled] = useState(false)
+  const onStart: TTSEventHandler = useCallback(() => {
+    setDisabled(true)
+  }, [])
+  const onEnd: TTSEventHandler = useCallback(() => {
+    setDisabled(false)
+  }, [])
 
   useEffect(() => {
     if (!voices.length) {
@@ -67,6 +97,7 @@ const Languages: ComponentStory<typeof TextToSpeech> = (args) => {
       <label>
         <select
           value={lang}
+          disabled={disabled}
           onChange={(evt) => {
             setLang(voices.find((voice) => voice.lang === evt.target.value)?.lang)
           }}>
@@ -81,7 +112,7 @@ const Languages: ComponentStory<typeof TextToSpeech> = (args) => {
           <em>(Some voices may create skewed word boundaries for the given text.)</em>
         </small>
       </p>
-      <TextToSpeech {...args} lang={lang}>
+      <TextToSpeech {...args} lang={lang} onStart={onStart} onEnd={onEnd}>
         The voice should sound appropriate to the selected locale.
       </TextToSpeech>
     </>
@@ -160,21 +191,26 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
   const [voices, setVoices] = useState(window.speechSynthesis?.getVoices() ?? [])
   const [voice, setVoice] = useState<SpeechSynthesisVoice | undefined>()
   const prevVolume = useRef(volume)
-  const { ttsChildren, state, set, onPlay, onPause, onReset, onStop, onToggleMute } =
-    useTts({
-      ...args,
-      voice,
-      children: 'The hook can be used to create custom controls.',
-      onVolumeChange: useMemo(() => action('onVolumeChange'), []),
-      onPitchChange: useMemo(() => action('onPitchChange'), []),
-      onRateChange: useMemo(() => action('onRateChange'), [])
-    })
+  const {
+    ttsChildren,
+    state,
+    set,
+    play,
+    pause,
+    replay,
+    stop,
+    toggleMute
+  }: TTSHookResponse = useTts({
+    ...args,
+    voice,
+    children: 'The hook can be used to create custom controls.'
+  })
   const onMuteChanged = useCallback(() => {
-    onToggleMute((wasMuted) => {
+    toggleMute((wasMuted) => {
       setVolume(wasMuted ? prevVolume.current : 0)
       set.volume(wasMuted ? prevVolume.current : 0)
     })
-  }, [onToggleMute, set])
+  }, [toggleMute, set])
   const onSelectVoice = useCallback(
     (evt: ChangeEvent<HTMLSelectElement>) => {
       setVoice(voices.find((voice) => voice.name === evt.target.value))
@@ -230,7 +266,10 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
             <em>Some voices may create skewed word boundaries for the given text.</em>
           </small>
           <label>
-            <select value={voice?.name} onChange={onSelectVoice}>
+            <select
+              disabled={state.isPlaying}
+              value={voice?.name}
+              onChange={onSelectVoice}>
               <option>-- Select a voice --</option>
               {voices.map(({ name, lang }) => (
                 <option key={name} value={name}>
@@ -254,14 +293,14 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
         </p>
       )}
       <div style={{ display: 'flex', gap: '5px' }}>
-        <button disabled={state.isPlaying} onClick={onPlay}>
+        <button disabled={state.isPlaying} onClick={play}>
           Play
         </button>
-        <button disabled={state.isPaused} onClick={onPause}>
+        <button disabled={!state.isPlaying} onClick={pause}>
           Pause
         </button>
-        <button onClick={onStop}>Stop</button>
-        <button onClick={onReset}>Replay</button>
+        <button onClick={stop}>Stop</button>
+        <button onClick={replay}>Replay</button>
       </div>
       <div
         style={{
@@ -271,7 +310,8 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
           marginTop: '15px'
         }}>
         <label>
-          Mute: <input type="checkbox" onChange={onMuteChanged} />
+          Mute:{' '}
+          <input disabled={state.isPlaying} type="checkbox" onChange={onMuteChanged} />
         </label>
         <Label>
           <span style={{ width: 70 }}>Volume:</span>
@@ -372,21 +412,37 @@ const ErrorExample: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
-  const fetchAudioData = () =>
-    Promise.resolve({
-      marks: [
-        { time: 6, type: 'word', start: 0, end: 3, value: 'You' },
-        { time: 126, type: 'word', start: 4, end: 7, value: 'can' },
-        { time: 292, type: 'word', start: 8, end: 11, value: 'use' },
-        { time: 495, type: 'word', start: 12, end: 18, value: 'Amazon' },
-        { time: 936, type: 'word', start: 19, end: 24, value: 'Polly' },
-        { time: 1314, type: 'word', start: 25, end: 29, value: 'with' },
-        { time: 1481, type: 'word', start: 30, end: 45, value: 'fetchAudioData' }
-      ],
-      audio: audiosrc
-    })
+const AmazonPollyHook: ComponentStory<typeof TextToSpeech> = (args) => {
+  const children = (
+    <p>
+      You can use Amazon Polly with <code>fetchAudioData</code>.
+    </p>
+  )
+  const { state, ttsChildren, play, pause, stop, replay } = useTts({
+    ...args,
+    children,
+    fetchAudioData
+  })
 
+  if (!state.isReady) {
+    return <p>Loading data...</p>
+  }
+
+  return (
+    <>
+      <button disabled={state.isPlaying} onClick={() => play()}>
+        Play
+      </button>
+      <button disabled={!state.isPlaying} onClick={() => pause()}>
+        Pause
+      </button>
+      <button onClick={() => stop()}>Stop</button>
+      <button onClick={() => replay()}>Replay</button>
+      <div>{ttsChildren}</div>
+    </>
+  )
+}
+const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
     <>
       <p>
@@ -400,6 +456,35 @@ const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
           You can use Amazon Polly with <code>fetchAudioData</code>.
         </p>
       </TextToSpeech>
+    </>
+  )
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const CountOnEnd: ComponentStory<typeof TextToSpeech> = (args) => {
+  const [count, setCount] = useState(1)
+  const [counting, setCounting] = useState(false)
+  const { ttsChildren, play } = useTts({
+    ...args,
+    children: count,
+    markTextAsSpoken: true,
+    onEnd: useCallback(() => {
+      setCount((prev) => prev + 1)
+    }, [])
+  })
+
+  useEffect(() => {
+    if (counting) {
+      play()
+    }
+  }, [count, counting, play])
+
+  return (
+    <>
+      <button disabled={counting} onClick={() => setCounting(true)}>
+        Start
+      </button>
+      <button onClick={() => setCounting(false)}>Stop</button>
+      <p>{ttsChildren}</p>
     </>
   )
 }
@@ -548,7 +633,36 @@ export default {
       control: 'color'
     },
     onError: {
-      action: 'onError'
+      action: 'onError',
+      control: false
+    },
+    onStart: {
+      action: 'onStart',
+      control: false
+    },
+    onEnd: {
+      action: 'onEnd',
+      control: false
+    },
+    onPause: {
+      action: 'onPause',
+      control: false
+    },
+    onBoundary: {
+      action: 'onBoundary',
+      control: false
+    },
+    onVolumeChange: {
+      action: 'onVolumeChange',
+      control: false
+    },
+    onRateChange: {
+      action: 'onRateChange',
+      control: false
+    },
+    onPitchChange: {
+      action: 'onPitchChange',
+      control: false
     },
     size: {
       options: [Sizes.SMALL, Sizes.MEDIUM, Sizes.LARGE],
@@ -578,6 +692,7 @@ export {
   Languages,
   LangES_ES,
   AmazonPolly,
+  AmazonPollyHook,
   ImageText,
   Android,
   DangerouslySetInnerHTML,

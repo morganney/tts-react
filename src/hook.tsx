@@ -1,4 +1,5 @@
 import {
+  useRef,
   useMemo,
   useReducer,
   useCallback,
@@ -10,16 +11,61 @@ import {
 import type { ReactNode } from 'react'
 
 import { Controller, Events } from './controller'
-import type {
-  ControllerOptions,
-  TTSBoundaryUpdate,
-  CustomBoundaryEventListener,
-  CustomErrorEventListener,
-  CustomNumberEventListener
-} from './controller'
+import type { ControllerOptions, TTSBoundaryUpdate, TTSEvent } from './controller'
 import { isStringOrNumber, stripPunctuation } from './utils'
 import { Highlighter } from './highlighter'
 
+/**
+ * Event handler for a TTS event:
+ * - `onStart`
+ * - `onPause`
+ * - `onEnd`
+ *
+ * If not using `fetchAudioData` then the event will be `SpeechSynthesisEvent`.
+ * Otherwise, the event will be the generic `Event` type used by `HTMLAudioElement`.
+ */
+type TTSEventHandler = (evt: SpeechSynthesisEvent | Event) => void
+/**
+ * Event handler for a TTS error event.
+ * `tts-react` wraps both `SpeechSynthesis` and `HTMLAudioElement` API's
+ * which return the error information in diferrent ways. `tts-react` will
+ * return the error message from to the handler if one is found.
+ */
+type TTSErrorHandler = (msg: string) => void
+/**
+ * Event handler if an attribute of speaking has changed:
+ * - volume
+ * - rate
+ * - pitch
+ */
+type TTSAudioChangeHandler = (newValue: number) => void
+/**
+ * Event handler for TTS boundary events.
+ *
+ * If yousing `fetchAudioData` these events correspond to `timeupdate` events
+ * for `HTMLAudioElement` where a `PollySpeechMark` could be found for the event's `currentTime`.
+ *
+ * Otherwise, these correspond to `boundary` events for `SpeechSynthesisUtterance`.
+ */
+type TTSBoundaryHandler = (
+  boundary: TTSBoundaryUpdate,
+  evt: SpeechSynthesisEvent | Event
+) => void
+
+interface TTSOnEvent {
+  (evt: CustomEvent<TTSEvent>): void
+}
+interface TTSOnBoundary {
+  (
+    evt: CustomEvent<{ boundary: TTSBoundaryUpdate; evt: SpeechSynthesisEvent | Event }>
+  ): void
+}
+interface TTSOnError {
+  (evt: CustomEvent<string>): void
+}
+interface TTSOnAudioChange {
+  (evt: CustomEvent<number>): void
+}
 interface MarkStyles {
   /** Text color of the currently marked word. */
   markColor?: string
@@ -42,15 +88,21 @@ interface TTSHookProps extends MarkStyles {
   /** Whether the spoken word should be wrapped in a `<mark>` element. */
   markTextAsSpoken?: boolean
   /** Callback when the volume is changed.  */
-  onVolumeChange?: (newVolume: number) => void
+  onVolumeChange?: TTSAudioChangeHandler
   /** Callback when the rate is changed.  */
-  onRateChange?: (newRate: number) => void
+  onRateChange?: TTSAudioChangeHandler
   /** Callback when the pitch is changed.  */
-  onPitchChange?: (newPitch: number) => void
+  onPitchChange?: TTSAudioChangeHandler
   /** Callback when there is an error of any kind. */
-  onError?: (errorMsg: string) => void
+  onError?: TTSErrorHandler
+  /** Callback when speaking/audio starts playing. */
+  onStart?: TTSEventHandler
+  /** Callback when the speaking/audio is paused. */
+  onPause?: TTSEventHandler
+  /** Callback when a word boundary/mark has been reached. */
+  onBoundary?: TTSBoundaryHandler
   /** Calback when the current utterance/audio has ended. */
-  onEnd?: (evt: Event) => void
+  onEnd?: TTSEventHandler
   /** Function to fetch audio and speech marks for the spoken text. */
   fetchAudioData?: ControllerOptions['fetchAudioData']
 }
@@ -78,7 +130,7 @@ interface Action {
     | 'voices'
   payload?: TTSBoundaryUpdate | SpeechSynthesisVoice[]
 }
-interface OnToggleMuteCallback {
+interface ToggleMuteCallback {
   (wasMuted: boolean): void
 }
 interface TTSHookResponse {
@@ -96,15 +148,21 @@ interface TTSHookResponse {
     volume: () => number
     preservesPitch: () => boolean
   }
+  /** State of the current speaking/audio. */
   state: TTSHookState
+  /** The text extracted from the children elements and used to synthesize speech. */
   spokenText: string
-  onPlay: () => void
-  onStop: () => void
-  onPause: () => void
-  onReset: () => void
-  onToggleMute: (callback?: OnToggleMuteCallback) => void
-  onPlayStop: () => void
-  onPlayPause: () => void
+  play: () => void
+  stop: () => void
+  pause: () => void
+  replay: () => void
+  /** Toggles between muted/unmuted, i.e. volume is zero or non-zero. */
+  toggleMute: (callback?: (wasMuted: boolean) => void) => void
+  /** Toggles between play/stop. */
+  playOrStop: () => void
+  /** Toggles between play/pause. */
+  playOrPause: () => void
+  /** The original children with a possible <mark> included if using `markTextAsSpoken`. */
   ttsChildren: ReactNode
 }
 interface TextBuffer {
@@ -114,6 +172,7 @@ interface ParseChildrenProps extends MarkStyles {
   children: ReactNode
   buffer: TextBuffer
   boundary: TTSBoundaryUpdate
+  markTextAsSpoken: boolean
 }
 
 const parseChildrenRecursively = ({
@@ -121,7 +180,8 @@ const parseChildrenRecursively = ({
   buffer,
   boundary,
   markColor,
-  markBackgroundColor
+  markBackgroundColor,
+  markTextAsSpoken
 }: ParseChildrenProps): ReactNode => {
   return Children.map(children, (child) => {
     let currentChild = child
@@ -134,6 +194,7 @@ const parseChildrenRecursively = ({
           boundary,
           markColor,
           markBackgroundColor,
+          markTextAsSpoken,
           children: child.props.children
         })
       })
@@ -146,7 +207,7 @@ const parseChildrenRecursively = ({
 
       buffer.text += `${text} `
 
-      if (word) {
+      if (markTextAsSpoken && word) {
         const start = startChar - bufferTextLength
         const end = endChar - bufferTextLength
         const prev = text.substring(0, start)
@@ -218,8 +279,6 @@ const reducer = (state: TTSHookState, action: Action): TTSHookState => {
       return { ...state, isMuted: true }
     case 'unmuted':
       return { ...state, isMuted: false }
-    default:
-      throw new Error(`[tts-react]: invalid action type ${action.type}`)
   }
 }
 const useTts = ({
@@ -230,6 +289,9 @@ const useTts = ({
   children,
   markColor,
   markBackgroundColor,
+  onStart,
+  onPause,
+  onBoundary,
   onEnd,
   onError,
   onVolumeChange,
@@ -239,6 +301,7 @@ const useTts = ({
   autoPlay = false,
   markTextAsSpoken = false
 }: TTSHookProps): TTSHookResponse => {
+  const spokenTextRef = useRef<string>()
   const [state, dispatch] = useReducer(reducer, {
     voices: window.speechSynthesis?.getVoices() ?? [],
     boundary: defaultBoundary,
@@ -249,52 +312,59 @@ const useTts = ({
     isReady: typeof fetchAudioData === 'undefined'
   })
   const [ttsChildren, spokenText] = useMemo(() => {
-    const buffer: TextBuffer = { text: '' }
-    const parsed = parseChildrenRecursively({
-      children,
-      buffer,
-      markColor,
-      markBackgroundColor,
-      boundary: state.boundary
-    })
+    if (typeof spokenTextRef.current === 'undefined' || markTextAsSpoken) {
+      const buffer: TextBuffer = { text: '' }
+      const parsed = parseChildrenRecursively({
+        children,
+        buffer,
+        markColor,
+        markBackgroundColor,
+        markTextAsSpoken,
+        boundary: state.boundary
+      })
 
-    return [parsed, buffer.text.trim()]
-  }, [children, state.boundary, markColor, markBackgroundColor])
+      spokenTextRef.current = buffer.text.trim()
+
+      return [parsed, spokenTextRef.current]
+    }
+
+    return [children, spokenTextRef.current]
+  }, [children, state.boundary, markColor, markBackgroundColor, markTextAsSpoken])
   const controller = useMemo(
     () =>
       new Controller({
         lang,
         voice,
-        fetchAudioData,
-        dispatchBoundaries: markTextAsSpoken
+        fetchAudioData
       }),
-    [lang, voice, fetchAudioData, markTextAsSpoken]
+    [lang, voice, fetchAudioData]
   )
-  const onPlay = useCallback(() => {
+  const play = useCallback(async () => {
     if (state.isPaused) {
       controller.resume()
     } else {
-      controller.play()
+      // Replay gives a more consistent/expected experience
+      controller.replay()
     }
 
     dispatch({ type: 'play' })
   }, [controller, state.isPaused])
-  const onPause = useCallback(() => {
+  const pause = useCallback(() => {
     controller.pause()
     dispatch({ type: 'pause' })
   }, [controller])
-  const onReset = useCallback(() => {
-    controller.reset()
+  const replay = useCallback(() => {
+    controller.replay()
     dispatch({ type: 'reset' })
   }, [controller])
-  const onStop = useCallback(() => {
-    controller.clear()
+  const stop = useCallback(() => {
+    controller.cancel()
 
     dispatch({ type: 'stop' })
   }, [controller])
-  const onToggleMuteHandler = useCallback(
-    (callback?: OnToggleMuteCallback) => {
-      const wasMuted = state.isMuted
+  const toggleMuteHandler = useCallback(
+    (callback?: ToggleMuteCallback) => {
+      const wasMuted = controller.volume === 0
 
       if (wasMuted) {
         controller.unmute()
@@ -308,15 +378,15 @@ const useTts = ({
         callback(wasMuted)
       }
     },
-    [controller, state.isMuted]
+    [controller]
   )
-  const onPlayPause = useMemo(
-    () => (state.isPlaying ? onPause : onPlay),
-    [state.isPlaying, onPause, onPlay]
+  const playOrPause = useMemo(
+    () => (state.isPlaying ? pause : play),
+    [state.isPlaying, pause, play]
   )
-  const onPlayStop = useMemo(
-    () => (state.isPlaying ? onStop : onPlay),
-    [state.isPlaying, onStop, onPlay]
+  const playOrStop = useMemo(
+    () => (state.isPlaying ? stop : play),
+    [state.isPlaying, stop, play]
   )
   const [get, set] = useMemo(
     () => [
@@ -358,12 +428,28 @@ const useTts = ({
     [controller]
   )
   // Controller event listeners
-  const onEndHandler = useCallback(
-    (evt: Event) => {
+  const onStartHandler: TTSOnEvent = useCallback(
+    (evt) => {
+      if (typeof onStart === 'function') {
+        onStart(evt.detail)
+      }
+    },
+    [onStart]
+  )
+  const onPauseHandler: TTSOnEvent = useCallback(
+    (evt) => {
+      if (typeof onPause === 'function') {
+        onPause(evt.detail)
+      }
+    },
+    [onPause]
+  )
+  const onEndHandler: TTSOnEvent = useCallback(
+    (evt) => {
       dispatch({ type: 'end' })
 
       if (typeof onEnd === 'function') {
-        onEnd(evt)
+        onEnd(evt.detail)
       }
     },
     [onEnd]
@@ -371,7 +457,7 @@ const useTts = ({
   const onReady = useCallback(() => {
     dispatch({ type: 'ready' })
   }, [])
-  const onErrorHandler: CustomErrorEventListener = useCallback(
+  const onErrorHandler: TTSOnError = useCallback(
     (evt) => {
       dispatch({ type: 'error' })
 
@@ -381,18 +467,25 @@ const useTts = ({
     },
     [onError]
   )
-  const onBoundary: CustomBoundaryEventListener = useCallback((evt) => {
-    dispatch({ type: 'boundary', payload: evt.detail })
-  }, [])
-  const onVolume: CustomNumberEventListener = useCallback(
+  const onBoundaryHandler: TTSOnBoundary = useCallback(
+    (evt) => {
+      dispatch({ type: 'boundary', payload: evt.detail.boundary })
+
+      if (typeof onBoundary === 'function') {
+        onBoundary(evt.detail.boundary, evt.detail.evt)
+      }
+    },
+    [onBoundary]
+  )
+  const onVolume: TTSOnAudioChange = useCallback(
     (evt) => {
       const volume = evt.detail
 
-      if (volume === 0 && !state.isMuted) {
+      if (volume === 0 && controller.volume !== 0) {
         dispatch({ type: 'muted' })
       }
 
-      if (volume !== 0 && state.isMuted) {
+      if (volume !== 0 && controller.volume === 0) {
         dispatch({ type: 'unmuted' })
       }
 
@@ -400,9 +493,9 @@ const useTts = ({
         onVolumeChange(volume)
       }
     },
-    [onVolumeChange, state.isMuted]
+    [onVolumeChange, controller]
   )
-  const onPitch: CustomNumberEventListener = useCallback(
+  const onPitch: TTSOnAudioChange = useCallback(
     (evt) => {
       if (typeof onPitchChange === 'function') {
         onPitchChange(evt.detail)
@@ -410,7 +503,7 @@ const useTts = ({
     },
     [onPitchChange]
   )
-  const onRate: CustomNumberEventListener = useCallback(
+  const onRate: TTSOnAudioChange = useCallback(
     (evt) => {
       if (typeof onRateChange === 'function') {
         onRateChange(evt.detail)
@@ -420,30 +513,34 @@ const useTts = ({
   )
 
   useEffect(() => {
-    controller.spokenText = spokenText
+    controller.text = spokenText
   }, [spokenText, controller])
 
   useEffect(() => {
-    controller.rate = rate ?? 1
-    controller.volume = volume ?? 1
+    if (rate && Number.isFinite(rate)) {
+      controller.rate = rate
+    }
+
+    if (volume && Number.isFinite(volume)) {
+      controller.volume = volume
+    }
   }, [controller, rate, volume])
 
   useEffect(() => {
     const onBeforeUnload = () => {
-      controller.clear()
+      controller.cancel()
     }
     const initializeListeners = async () => {
-      controller.addEventListener(Events.END, onEndHandler)
+      controller.addEventListener(Events.PLAYING, onStartHandler as EventListener)
+      controller.addEventListener(Events.PAUSED, onPauseHandler as EventListener)
+      controller.addEventListener(Events.END, onEndHandler as EventListener)
       controller.addEventListener(Events.ERROR, onErrorHandler as EventListener)
       controller.addEventListener(Events.READY, onReady)
+      controller.addEventListener(Events.BOUNDARY, onBoundaryHandler as EventListener)
       controller.addEventListener(Events.VOLUME, onVolume as EventListener)
       controller.addEventListener(Events.PITCH, onPitch as EventListener)
       controller.addEventListener(Events.RATE, onRate as EventListener)
       window.addEventListener('beforeunload', onBeforeUnload)
-
-      if (markTextAsSpoken) {
-        controller.addEventListener(Events.BOUNDARY, onBoundary as EventListener)
-      }
 
       await controller.init()
     }
@@ -452,16 +549,20 @@ const useTts = ({
 
     return () => {
       window.removeEventListener('beforeunload', onBeforeUnload)
-      controller.removeEventListener(Events.END, onEndHandler)
+      controller.removeEventListener(Events.PLAYING, onStartHandler as EventListener)
+      controller.removeEventListener(Events.PAUSED, onPauseHandler as EventListener)
+      controller.removeEventListener(Events.END, onEndHandler as EventListener)
       controller.removeEventListener(Events.ERROR, onErrorHandler as EventListener)
       controller.removeEventListener(Events.READY, onReady)
-      controller.removeEventListener(Events.BOUNDARY, onBoundary as EventListener)
+      controller.removeEventListener(Events.BOUNDARY, onBoundaryHandler as EventListener)
       controller.removeEventListener(Events.VOLUME, onVolume as EventListener)
       controller.removeEventListener(Events.PITCH, onPitch as EventListener)
       controller.removeEventListener(Events.RATE, onRate as EventListener)
-      controller.destroy()
     }
   }, [
+    onStartHandler,
+    onBoundaryHandler,
+    onPauseHandler,
     onEndHandler,
     onReady,
     onErrorHandler,
@@ -469,14 +570,12 @@ const useTts = ({
     onVolume,
     onPitch,
     onRate,
-    controller,
-    markTextAsSpoken
+    controller
   ])
 
   useEffect(() => {
     if (autoPlay && state.isReady) {
-      controller.clear()
-      controller.play()
+      controller.replay()
       dispatch({ type: 'play' })
     }
   }, [autoPlay, controller, state.isReady, spokenText])
@@ -503,15 +602,23 @@ const useTts = ({
     state,
     spokenText,
     ttsChildren,
-    onPlay,
-    onStop,
-    onPause,
-    onReset,
-    onPlayStop,
-    onPlayPause,
-    onToggleMute: onToggleMuteHandler
+    play,
+    stop,
+    pause,
+    replay,
+    playOrStop,
+    playOrPause,
+    toggleMute: toggleMuteHandler
   }
 }
 
 export { useTts }
-export type { TTSHookProps, TTSHookResponse, TTSHookState }
+export type {
+  TTSHookProps,
+  TTSHookResponse,
+  TTSHookState,
+  TTSEventHandler,
+  TTSErrorHandler,
+  TTSBoundaryHandler,
+  TTSAudioChangeHandler
+}

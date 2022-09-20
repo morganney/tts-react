@@ -13,7 +13,7 @@ beforeEach(() => {
   jest.useFakeTimers()
 })
 
-afterEach(() => {
+afterEach(async () => {
   jest.clearAllMocks()
-  jest.runAllTimers()
+  jest.clearAllTimers()
 })
