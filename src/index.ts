@@ -4,5 +4,13 @@ export { useTts } from './hook'
 export { LangCodes } from './utils'
 
 export type { TTSProps } from './component'
-export type { TTSHookProps, TTSHookResponse, TTSHookState } from './hook'
+export type {
+  TTSHookProps,
+  TTSHookResponse,
+  TTSHookState,
+  TTSEventHandler,
+  TTSBoundaryHandler,
+  TTSAudioChangeHandler,
+  TTSErrorHandler
+} from './hook'
 export type { TTSBoundaryUpdate, TTSAudioData, PollySpeechMark } from './controller'

@@ -1,6 +1,6 @@
 {
   "name": "tts-react",
-  "version": "0.8.2",
+  "version": "1.0.0",
   "description": "React component to convert text to speech.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

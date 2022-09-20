@@ -1,4 +1,5 @@
 import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock'
+import { SpeechSynthesisErrorEventMock } from './speechSynthesisErrorEvent.mock'
 
 interface SpeechSynthesisUtteranceEntry {
   utterance: SpeechSynthesisUtterance
@@ -6,35 +7,46 @@ interface SpeechSynthesisUtteranceEntry {
 }
 
 class SpeechSynthesisMock extends EventTarget {
+  static #triggerError = false
+
   #paused = false
   #speaking = false
   #pending = false
   #utterances: SpeechSynthesisUtteranceEntry[] = []
-  #abortController: AbortController = new AbortController()
-
-  get paused() {
-    return this.#paused
-  }
-  get speaking() {
-    return this.#speaking
-  }
-  get pending() {
-    return this.#pending
-  }
 
   static get wordBoundaryDelayMs() {
     return 100
-  }
-
-  get utterances() {
-    return this.#utterances
   }
 
   static get textForTest() {
     return 'This is only a test.'
   }
 
+  static set triggerError(value: boolean) {
+    this.#triggerError = value
+  }
+
+  static get triggerError() {
+    return this.#triggerError
+  }
+
   static getWords = (text: string) => text.replace(/\s+/g, ' ').split(' ')
+
+  get paused() {
+    return this.#paused
+  }
+
+  get speaking() {
+    return this.#speaking
+  }
+
+  get pending() {
+    return this.#pending
+  }
+
+  get utterances() {
+    return this.#utterances
+  }
 
   #wait = (delay: number = SpeechSynthesisMock.wordBoundaryDelayMs) =>
     new Promise((resolve) => setTimeout(resolve, delay))
@@ -42,17 +54,21 @@ class SpeechSynthesisMock extends EventTarget {
   #speak = async (entry: SpeechSynthesisUtteranceEntry) => {
     const { utterance, words } = entry
     const text = utterance.text
+    const eventType =
+      words.length < SpeechSynthesisMock.getWords(utterance.text).length
+        ? 'resume'
+        : 'start'
     let word = words.shift()
 
-    this.#abortController.signal.onabort = () => {
-      this.#utterances.unshift({ utterance: entry.utterance, words: [...words] })
-      this.#speaking = false
+    this.#speaking = true
+    utterance.dispatchEvent(new SpeechSynthesisEventMock(eventType, { utterance }))
+
+    if (SpeechSynthesisMock.triggerError) {
+      utterance.dispatchEvent(new SpeechSynthesisErrorEventMock('error', { utterance }))
+      SpeechSynthesisMock.triggerError = false
     }
 
-    this.#speaking = true
-    utterance.dispatchEvent(new SpeechSynthesisEventMock('start', { utterance }))
-
-    while (word) {
+    while (word && !this.#paused && this.#speaking) {
       await this.#wait()
       utterance.dispatchEvent(
         new SpeechSynthesisEventMock('boundary', {
@@ -64,9 +80,18 @@ class SpeechSynthesisMock extends EventTarget {
     }
 
     await this.#wait()
-    utterance.dispatchEvent(new SpeechSynthesisEventMock('end', { utterance }))
-    this.#speaking = false
-    this.#abortController.signal.onabort = null
+
+    if (this.#paused) {
+      const remaining = word ? [word, ...words] : [...words]
+
+      if (remaining.length) {
+        this.#utterances.unshift({ utterance: entry.utterance, words: remaining })
+        utterance.dispatchEvent(new SpeechSynthesisEventMock('pause', { utterance }))
+      }
+    } else {
+      this.#speaking = false
+      utterance.dispatchEvent(new SpeechSynthesisEventMock('end', { utterance }))
+    }
   }
 
   speak = jest.fn<void, [SpeechSynthesisUtterance]>(async (utterance) => {
@@ -75,60 +100,42 @@ class SpeechSynthesisMock extends EventTarget {
 
     if (this.#paused || this.#utterances.length) {
       this.#utterances.push(current)
+      this.#pending = true
     }
 
     if (!this.#paused) {
-      this.#speak(this.#utterances.shift() ?? current)
+      const speakit = this.#utterances.shift() ?? current
+
+      if (!this.#utterances.length) {
+        this.#pending = false
+      }
+
+      this.#speak(speakit)
     }
   })
 
   cancel = jest.fn<void, []>(() => {
-    const entry = this.#utterances[0]
-
-    if (entry) {
-      entry.utterance.dispatchEvent(
-        new SpeechSynthesisEventMock('end', { utterance: entry.utterance })
-      )
-    }
-
-    if (this.#speaking && this.#abortController) {
-      this.#abortController.abort()
-    }
-
     this.#speaking = false
     this.#utterances = []
   })
 
   pause = jest.fn<void, []>(() => {
-    const entry = this.#utterances[0]
-
-    this.#paused = true
-
-    if (entry) {
-      entry.utterance.dispatchEvent(
-        new SpeechSynthesisEventMock('pause', { utterance: entry.utterance })
-      )
-    }
-
-    if (this.#abortController) {
-      this.#abortController.abort()
+    if (!this.#paused) {
+      this.#paused = true
     }
   })
 
   resume = jest.fn<void, []>(() => {
-    const entry = this.#utterances[0]
+    if (this.#paused) {
+      this.#paused = false
 
-    this.#paused = false
+      if (this.#speaking) {
+        const entry = this.#utterances.shift()
 
-    if (entry) {
-      const numWords = SpeechSynthesisMock.getWords(entry.utterance.text).length
-      const numWordsLeft = entry.words.length
-
-      entry.utterance.dispatchEvent(
-        new SpeechSynthesisEventMock(numWordsLeft === numWords ? 'start' : 'resume', {
-          utterance: entry.utterance
-        })
-      )
+        if (entry) {
+          this.speak(entry.utterance)
+        }
+      }
     }
   })
 

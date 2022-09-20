@@ -7,7 +7,7 @@ import { useTts } from 'tts-reat'
 const CountOnEnd = () => {
   const [count, setCount] = useState(1)
   const [counting, setCounting] = useState(false)
-  const { ttsChildren, onPlay } = useTts({
+  const { ttsChildren, play } = useTts({
     children: count,
     markTextAsSpoken: true,
     onEnd: useCallback(() => {
@@ -17,9 +17,9 @@ const CountOnEnd = () => {
 
   useEffect(() => {
     if (counting) {
-      onPlay()
+      play()
     }
-  }, [count, counting, onPlay])
+  }, [count, counting, play])
 
   return (
     <>
