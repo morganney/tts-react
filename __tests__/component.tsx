@@ -111,33 +111,60 @@ describe('TextToSpeech', () => {
       </TextToSpeech>
     )
 
-    expect(getByTestId('tts-react-controls')).toBeInTheDocument()
-    expect(getByTestId('tts-react-controls')).toHaveStyle({ top: '1px', left: '1px' })
+    expect(getByTestId('tts-react')).toHaveStyle({ gridTemplateAreas: `'ctl cnt'` })
 
     rerender(
       <TextToSpeech position={Positions.BL}>
         {SpeechSynthesisMock.textForTest}
       </TextToSpeech>
     )
-    expect(getByTestId('tts-react-controls')).toHaveStyle({ bottom: '1px', left: '1px' })
+    expect(getByTestId('tts-react')).toHaveStyle({ gridTemplateAreas: `'ctl cnt'` })
 
     rerender(
       <TextToSpeech position={Positions.BR}>
         {SpeechSynthesisMock.textForTest}
       </TextToSpeech>
     )
+    expect(getByTestId('tts-react')).toHaveStyle({ gridTemplateAreas: `'cnt ctl'` })
     expect(getByTestId('tts-react-controls')).toHaveStyle({
-      bottom: '1px',
-      right: '1px',
       flexDirection: 'row'
+    })
+
+    rerender(
+      <TextToSpeech position={Positions.TC}>
+        {SpeechSynthesisMock.textForTest}
+      </TextToSpeech>
+    )
+    expect(getByTestId('tts-react')).toHaveStyle({ gridTemplateAreas: "'ctl'\n'cnt'" })
+
+    rerender(
+      <TextToSpeech position={Positions.BC}>
+        {SpeechSynthesisMock.textForTest}
+      </TextToSpeech>
+    )
+    expect(getByTestId('tts-react')).toHaveStyle({ gridTemplateAreas: "'cnt'\n'ctl'" })
+
+    rerender(
+      <TextToSpeech position={Positions.RC}>
+        {SpeechSynthesisMock.textForTest}
+      </TextToSpeech>
+    )
+    expect(getByTestId('tts-react')).toHaveStyle({ alignItems: 'center' })
+
+    rerender(
+      <TextToSpeech position={Positions.LC}>
+        {SpeechSynthesisMock.textForTest}
+      </TextToSpeech>
+    )
+    expect(getByTestId('tts-react')).toHaveStyle({
+      alignItems: 'center',
+      gridTemplateColumns: 'auto 1fr'
     })
 
     rerender(
       <TextToSpeech align="vertical">{SpeechSynthesisMock.textForTest}</TextToSpeech>
     )
     expect(getByTestId('tts-react-controls')).toHaveStyle({
-      top: '1px',
-      right: '1px',
       flexDirection: 'column'
     })
   })

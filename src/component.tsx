@@ -12,7 +12,11 @@ enum Positions {
   TL = 'topLeft',
   TR = 'topRight',
   BL = 'bottomLeft',
-  BR = 'bottomRight'
+  BR = 'bottomRight',
+  TC = 'topCenter',
+  RC = 'rightCenter',
+  BC = 'bottomCenter',
+  LC = 'leftCenter'
 }
 interface TTSProps extends TTSHookProps {
   /** How the controls are aligned within the `TextToSpeech` component. */
@@ -28,37 +32,74 @@ interface TTSProps extends TTSHookProps {
   /** Whether the `TextToSpeech` component should render a stop control instead of pause. */
   useStopOverPause?: boolean
 }
-type ControlsProps = Required<Pick<TTSProps, 'align' | 'position' | 'size'>>
+type StyleProps = Pick<TTSProps, 'align' | 'position' | 'size'>
 
-const getTRBL = (position: TTSProps['position']) => {
+const wrap = ({ position }: StyleProps): CSSProperties => {
+  let gridTemplateAreas = `'cnt ctl'`
+  let gridTemplateColumns = '1fr auto'
+  let alignItems = 'start'
+
   switch (position) {
     case Positions.TL:
-      return { top: '1px', left: '1px' }
-    case Positions.BR:
-      return { bottom: '1px', right: '1px' }
+      gridTemplateAreas = `'ctl cnt'`
+      gridTemplateColumns = 'auto 1fr'
+      break
     case Positions.BL:
-      return { bottom: '1px', left: '1px' }
-    default:
-      return { top: '1px', right: '1px' }
+      gridTemplateAreas = `'ctl cnt'`
+      alignItems = 'end'
+      gridTemplateColumns = 'auto 1fr'
+      break
+    case Positions.BR:
+      gridTemplateAreas = `'cnt ctl'`
+      alignItems = 'end'
+      break
+    case Positions.TC:
+      gridTemplateColumns = '1fr'
+      gridTemplateAreas = `'ctl'\n'cnt'`
+      alignItems = 'center'
+      break
+    case Positions.RC:
+      alignItems = 'center'
+      break
+    case Positions.BC:
+      gridTemplateColumns = '1fr'
+      gridTemplateAreas = `'cnt'\n'ctl'`
+      alignItems = 'center'
+      break
+    case Positions.LC:
+      gridTemplateAreas = `'ctl cnt'`
+      gridTemplateColumns = 'auto 1fr'
+      alignItems = 'center'
   }
-}
-const wrap = (): CSSProperties => {
+
   return {
-    position: 'relative'
+    alignItems,
+    gridTemplateAreas,
+    gridTemplateColumns,
+    display: 'grid',
+    gap: '15px'
   }
 }
-const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
+const controls = ({
+  align,
+  position = Positions.TL,
+  size = Sizes.MEDIUM
+}: StyleProps): CSSProperties => {
   return {
     display: 'inline-flex',
     flexDirection: align === 'horizontal' ? 'row' : 'column',
-    position: 'absolute',
-    ...getTRBL(position),
-    zIndex: 9999,
     gap: '5px',
+    gridArea: 'ctl',
     padding: 0,
+    margin: position.includes('Center') ? 'auto' : 0,
     backgroundColor: '#f2f1f1a6',
     borderRadius: `${iconSizes[size] + ctrlPadding[size]}px`,
     border: '1px solid transparent'
+  }
+}
+const content = (): CSSProperties => {
+  return {
+    gridArea: 'cnt'
   }
 }
 /**
@@ -79,11 +120,13 @@ const controls = ({ align, position, size }: ControlsProps): CSSProperties => {
  * - `useStopOverPause`
  */
 const TextToSpeech = ({
+  size,
   lang,
   rate,
   voice,
   volume,
   children,
+  position,
   onStart,
   onPause,
   onBoundary,
@@ -98,9 +141,7 @@ const TextToSpeech = ({
   markBackgroundColor,
   autoPlay = false,
   allowMuting = true,
-  size = Sizes.MEDIUM,
   align = 'horizontal',
-  position = Positions.TR,
   markTextAsSpoken = false,
   useStopOverPause = false
 }: TTSProps) => {
@@ -124,11 +165,12 @@ const TextToSpeech = ({
     markBackgroundColor,
     markTextAsSpoken
   })
-  const wrapStyle = useMemo(() => wrap(), [])
+  const wrapStyle = useMemo(() => wrap({ position }), [position])
   const controlsStyle = useMemo(
     () => controls({ align, position, size }),
     [align, position, size]
   )
+  const contentStyle = useMemo(() => content(), [])
   const [type, title, onClick] = useMemo(() => {
     if (state.isPlaying) {
       if (useStopOverPause) {
@@ -145,7 +187,7 @@ const TextToSpeech = ({
   }, [toggleMute, onMuteToggled])
 
   return (
-    <div style={wrapStyle} className="tts-react">
+    <div style={wrapStyle} className="tts-react" data-testid="tts-react">
       {state.isReady && (
         <aside style={controlsStyle} data-testid="tts-react-controls">
           {allowMuting && (
@@ -177,7 +219,7 @@ const TextToSpeech = ({
           )}
         </aside>
       )}
-      {ttsChildren}
+      <div style={contentStyle}>{ttsChildren}</div>
     </div>
   )
 }
