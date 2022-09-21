@@ -587,7 +587,7 @@ export default {
     size: Sizes.MEDIUM,
     allowMuting: true,
     align: 'horizontal',
-    position: Positions.TR,
+    position: Positions.LC,
     markTextAsSpoken: true,
     markColor: 'white',
     markBackgroundColor: '#55AD66',

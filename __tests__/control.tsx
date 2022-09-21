@@ -1,5 +1,5 @@
 import { describe, jest } from '@jest/globals'
-import { render, act, fireEvent } from '@testing-library/react'
+import { render, fireEvent } from '@testing-library/react'
 
 import { Control } from '../src/control'
 
@@ -11,20 +11,6 @@ describe('Control', () => {
     )
 
     expect(getByRole('button', { name: 'Test' })).toBeInTheDocument()
-
-    // Check mouseenter on the button changes background color
-    act(() => {
-      fireEvent.mouseEnter(getByRole('button', { name: 'Test' }))
-    })
-    expect(getByRole('button', { name: 'Test' })).toHaveStyle({ background: '#ebeaeaa6' })
-
-    // Check that mouseleave on the button removes the background color
-    act(() => {
-      fireEvent.mouseLeave(getByRole('button', { name: 'Test' }))
-    })
-    expect(getByRole('button', { name: 'Test' })).toHaveStyle({
-      background: 'transparent'
-    })
 
     // Check onClick
     fireEvent.click(getByRole('button', { name: 'Test' }))

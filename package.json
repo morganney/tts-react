@@ -1,7 +1,7 @@
 {
   "name": "tts-react",
   "version": "1.0.0",
-  "description": "React component to convert text to speech.",
+  "description": "React hook and component for converting text to speech using the Web Speech API or Amazon Polly.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {
@@ -65,7 +65,6 @@
     "@typescript-eslint/parser": "^5.35.1",
     "babel-jest": "^29.0.2",
     "babel-plugin-react-remove-properties": "^0.3.0",
-    "circular-dependency-plugin": "^5.2.2",
     "codecov": "^3.8.3",
     "eslint": "^8.23.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
