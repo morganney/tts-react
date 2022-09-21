@@ -142,7 +142,7 @@ const Android: ComponentStory<typeof TextToSpeech> = (args) => {
 const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args}>
-      <figure>
+      <figure style={{ textAlign: 'center' }}>
         <img
           src={
             'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'
@@ -572,6 +572,9 @@ Android.argTypes = {
   useStopOverPause: {
     control: false
   }
+}
+ImageText.args = {
+  position: Positions.BC
 }
 
 export default {
