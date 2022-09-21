@@ -86,6 +86,7 @@ const controls = ({
   size = Sizes.MEDIUM
 }: StyleProps): CSSProperties => {
   return {
+    position: 'relative',
     display: 'inline-flex',
     flexDirection: align === 'horizontal' ? 'row' : 'column',
     gap: '5px',
@@ -193,6 +194,7 @@ const TextToSpeech = ({
           {allowMuting && (
             <Control
               size={size}
+              align={align}
               title={state.isMuted ? 'Unmute' : 'Mute'}
               aria-label={state.isMuted ? 'Unmute' : 'Mute'}
               onClick={handleOnMuteClicked}
@@ -207,11 +209,13 @@ const TextToSpeech = ({
             aria-label={title}
             onClick={onClick}
             size={size}
+            align={align}
           />
           {state.isPaused && (
             <Control
               type="replay"
               size={size}
+              align={align}
               title="Replay"
               aria-label="Replay"
               onClick={replay}
