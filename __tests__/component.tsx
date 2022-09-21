@@ -167,12 +167,5 @@ describe('TextToSpeech', () => {
     expect(getByTestId('tts-react-controls')).toHaveStyle({
       flexDirection: 'column'
     })
-
-    rerender(
-      <TextToSpeech position={undefined} size={undefined}>
-        {SpeechSynthesisMock.textForTest}
-      </TextToSpeech>
-    )
-    //expect(getByTestId('tts-react')).toHaveStyle({ alignItems: 'center' })
   })
 })
