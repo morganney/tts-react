@@ -141,8 +141,8 @@ const Android: ComponentStory<typeof TextToSpeech> = (args) => {
 }
 const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
-    <TextToSpeech {...args} position={Positions.TL}>
-      <figure style={{ margin: 0, paddingTop: 60 }}>
+    <TextToSpeech {...args}>
+      <figure>
         <img
           src={
             'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'
@@ -358,10 +358,10 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
 }
 const Component: ComponentStory<typeof TextToSpeech> = (args) => {
   return (
-    <TextToSpeech {...args} position={Positions.TL} align="vertical">
-      <div style={{ minWidth: '300px', paddingLeft: '60px' }}>
-        <p>During their day, workers in this cluster might:</p>
-        <ul>
+    <TextToSpeech {...args}>
+      <div>
+        <p style={{ margin: 0 }}>During their day, workers in this cluster might:</p>
+        <ul style={{ marginBottom: 0 }}>
           <li>Work with my hands and learn that way.</li>
           <li>Put things together.</li>
           <li>Do routine, organized and accurate work.</li>
@@ -489,14 +489,12 @@ const CountOnEnd: ComponentStory<typeof TextToSpeech> = (args) => {
   )
 }
 
+Component.args = {
+  align: 'vertical',
+  position: Positions.TL
+}
 Component.argTypes = {
   voice: {
-    control: false
-  },
-  position: {
-    control: false
-  },
-  align: {
     control: false
   }
 }
@@ -665,13 +663,13 @@ export default {
       control: false
     },
     size: {
-      options: [Sizes.SMALL, Sizes.MEDIUM, Sizes.LARGE],
+      options: Object.values(Sizes),
       control: {
         type: 'radio'
       }
     },
     position: {
-      options: [Positions.TR, Positions.TL, Positions.BL, Positions.BR],
+      options: Object.values(Positions),
       control: {
         type: 'radio'
       }
