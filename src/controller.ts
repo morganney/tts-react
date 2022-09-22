@@ -346,12 +346,29 @@ class Controller extends EventTarget {
     }
   }
 
+  /**
+   * Edge on Android was not working with toggling
+   * between volumes of zero and one. This sets a
+   * different lower and upper bound on the volume.
+   */
+  get volumeMin(): number {
+    return 0.01
+  }
+
+  get volumeMax(): number {
+    return 0.99
+  }
+
   get volume(): number {
     return this.#target.volume
   }
 
   set volume(value: number) {
-    const clamped = this.#clamp(parseFloat(value.toPrecision(2)))
+    const clamped = this.#clamp(
+      parseFloat(value.toPrecision(2)),
+      this.volumeMin,
+      this.volumeMax
+    )
 
     if (!Number.isNaN(clamped)) {
       this.#dispatchVolume(clamped)

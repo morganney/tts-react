@@ -317,8 +317,8 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
           <span style={{ width: 70 }}>Volume:</span>
           <input
             type="range"
-            min="0"
-            max="1"
+            min="0.01"
+            max="0.99"
             step="0.01"
             value={volume}
             disabled={state.isPlaying}

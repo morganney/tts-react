@@ -256,8 +256,9 @@ describe('useTts', () => {
       result.current.set.volume(0)
     })
     expect(result.current.state.isMuted).toBe(true)
-    expect(result.current.get.volume()).toBe(0)
-    expect(onVolumeChange).toHaveBeenCalledWith(0)
+    // Edge on Android was not respecting zero value volume
+    expect(result.current.get.volume()).toBe(0.01)
+    expect(onVolumeChange).toHaveBeenCalledWith(0.01)
     await act(async () => {
       result.current.set.volume(0.5)
     })

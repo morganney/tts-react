@@ -364,7 +364,7 @@ const useTts = ({
   }, [controller])
   const toggleMuteHandler = useCallback(
     (callback?: ToggleMuteCallback) => {
-      const wasMuted = controller.volume === 0
+      const wasMuted = parseFloat(controller.volume.toFixed(2)) === controller.volumeMin
 
       if (wasMuted) {
         controller.unmute()
@@ -482,12 +482,13 @@ const useTts = ({
   const onVolume: TTSOnAudioChange = useCallback(
     (evt) => {
       const volume = evt.detail
+      const min = controller.volumeMin
 
-      if (volume === 0 && controller.volume !== 0) {
+      if (volume === min && controller.volume !== min) {
         dispatch({ type: 'muted' })
       }
 
-      if (volume !== 0 && controller.volume === 0) {
+      if (volume !== min && controller.volume === min) {
         dispatch({ type: 'unmuted' })
       }
 
