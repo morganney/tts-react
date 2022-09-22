@@ -16,7 +16,7 @@ describe('Control', () => {
     fireEvent.click(getByRole('button', { name: 'Test' }))
     expect(onClick).toHaveBeenCalled()
 
-    // Check that styles corresponding to alignment correctly
+    // Check that styles correspond to alignment correctly
     rerender(<Control title="Align" type="replay" align="vertical" onClick={onClick} />)
     expect(getByRole('button', { name: 'Align' })).toHaveStyle({ bottom: '-39px' })
   })
