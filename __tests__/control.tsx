@@ -16,8 +16,8 @@ describe('Control', () => {
     fireEvent.click(getByRole('button', { name: 'Test' }))
     expect(onClick).toHaveBeenCalled()
 
-    // Check that the size defaults correctly
-    rerender(<Control title="NoSize" type="play" onClick={onClick} size={undefined} />)
-    expect(getByRole('button', { name: 'NoSize' })).toHaveStyle({ padding: '5px' })
+    // Check that styles corresponding to alignment correctly
+    rerender(<Control title="Align" type="replay" align="vertical" onClick={onClick} />)
+    expect(getByRole('button', { name: 'Align' })).toHaveStyle({ bottom: '-39px' })
   })
 })

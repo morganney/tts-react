@@ -430,6 +430,8 @@ const useTts = ({
   // Controller event listeners
   const onStartHandler: TTSOnEvent = useCallback(
     (evt) => {
+      dispatch({ type: 'play' })
+
       if (typeof onStart === 'function') {
         onStart(evt.detail)
       }

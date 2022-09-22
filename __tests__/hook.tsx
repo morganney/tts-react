@@ -140,6 +140,7 @@ describe('useTts', () => {
     })
     await advanceBy(1)
     expect(global.speechSynthesis.resume).toHaveBeenCalled()
+    expect(global.speechSynthesis.cancel).toHaveBeenCalled()
     expect(result.current.state.isPaused).toBe(false)
     expect(result.current.state.isPlaying).toBe(true)
     expect(result.current.state.boundary.word).toBe(words[1])

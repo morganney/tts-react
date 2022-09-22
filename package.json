@@ -1,6 +1,6 @@
 {
   "name": "tts-react",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "React hook and component for converting text to speech using the Web Speech API or Amazon Polly.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
