@@ -440,11 +440,11 @@ class Controller extends EventTarget {
       this.#synthesizer.load()
       await this.#playHtmlAudio()
     } else {
-      // Drop all utterances in the queue
-      this.#synthesizer.cancel()
       // Take out of any paused state
       this.#synthesizer.resume()
-      // Starat speaking from the beginning
+      // Drop all utterances in the queue
+      this.#synthesizer.cancel()
+      // Start speaking from the beginning
       this.#synthesizer.speak(this.#target as SpeechSynthesisUtterance)
     }
   }
