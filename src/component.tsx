@@ -1,3 +1,4 @@
+// No umd build for react/jsx-runtime @see https://github.com/facebook/react/issues/20923
 import React, { useMemo, useCallback } from 'react'
 import type { CSSProperties } from 'react'
 
