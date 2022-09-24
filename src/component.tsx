@@ -34,7 +34,7 @@ interface TTSProps extends TTSHookProps {
 }
 type StyleProps = Pick<TTSProps, 'align' | 'position' | 'size'>
 
-const wrap = ({ position }: StyleProps): CSSProperties => {
+const wrap = ({ position = Positions.LC }: StyleProps): CSSProperties => {
   let gridTemplateAreas = `'cnt ctl'`
   let gridTemplateColumns = '1fr auto'
   let alignItems = 'start'
@@ -82,7 +82,7 @@ const wrap = ({ position }: StyleProps): CSSProperties => {
 }
 const controls = ({
   align,
-  position = Positions.TL,
+  position = Positions.LC,
   size = Sizes.MEDIUM
 }: StyleProps): CSSProperties => {
   return {
@@ -228,5 +228,6 @@ const TextToSpeech = ({
   )
 }
 
+export { Sizes } from './icons'
 export { TextToSpeech, Positions }
 export type { TTSProps }

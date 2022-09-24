@@ -30,6 +30,6 @@ jobs:
       - name: Push to NPM registry
         uses: JS-DevTools/npm-publish@v1.4.3
         env:
-          BABEL_ENV: production
+          BABEL_ENV: esm
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}

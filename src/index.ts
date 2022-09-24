@@ -1,7 +1,6 @@
-export { TextToSpeech, Positions } from './component'
-export { Sizes } from './icons'
+export { TextToSpeech, Positions, Sizes } from './component'
 export { useTts } from './hook'
-export { LangCodes } from './utils'
+export { LanguageTags } from './languageTags'
 
 export type { TTSProps } from './component'
 export type {
