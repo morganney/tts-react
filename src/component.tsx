@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react'
+import React, { useMemo, useCallback } from 'react'
 import type { CSSProperties } from 'react'
 
 import { useTts } from './hook'

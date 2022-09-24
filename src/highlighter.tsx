@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import type { CSSProperties } from 'react'
 
 interface HighliterProps {
