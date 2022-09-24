@@ -43,4 +43,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Pack
+        env:
+          BABEL_ENV: esm
         run: npm pack

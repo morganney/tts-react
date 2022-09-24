@@ -1,13 +1,13 @@
 [production]
 
-current node
+last 3 node major versions
 
-last 2 chrome major versions
-last 2 firefox major versions
-last 2 edge major versions
-last 2 opera major versions
-last 2 safari major versions
+last 3 chrome major versions
+last 3 safari major versions
+last 3 firefox major versions
+last 3 edge major versions
+last 3 opera major versions
 
-last 2 and_chr major versions
-last 2 and_ff major versions
-last 2 ios_saf major versions
+last 3 ios_saf major versions
+last 3 and_chr major versions
+last 3 and_ff major versions

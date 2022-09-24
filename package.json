@@ -1,9 +1,16 @@
 {
   "name": "tts-react",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "React hook and component for converting text to speech using the Web Speech API or Amazon Polly.",
   "main": "dist/index.js",
+  "module": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./*": "./dist/*.js",
+    "./package.json": "./package.json"
+  },
   "types": "dist/index.d.ts",
+  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/morganney/tts-react.git"
@@ -24,7 +31,7 @@
     "prepack": "npm run build"
   },
   "engines": {
-    "npm": ">=8.3.0"
+    "node": ">=12.22.12"
   },
   "keywords": [
     "text-to-speech",
