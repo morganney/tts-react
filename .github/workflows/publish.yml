@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.5.2
       - name: Setup Node
-        uses: actions/setup-node@v3.4.1
+        uses: actions/setup-node@v3.6.0
         with:
           node-version: '18.16.0'
       - name: Install Dependencies
@@ -28,7 +28,7 @@ jobs:
       - name: Test
         run: npm test
       - name: Push to NPM registry
-        uses: JS-DevTools/npm-publish@v2.0.0
+        uses: JS-DevTools/npm-publish@v2.1.0
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
           package: packages/tts-react
