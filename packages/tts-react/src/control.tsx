@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect } from 'react'
 import type { MouseEventHandler, CSSProperties } from 'react'
 
-import { Sizes, icons, iconSizes } from './icons'
+import { Sizes, icons, iconSizes } from './icons.js'
 
 interface ControlProps {
   title: string

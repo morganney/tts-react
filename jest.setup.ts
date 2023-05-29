@@ -1,6 +1,6 @@
 import { beforeEach, afterEach, jest } from '@jest/globals'
-import { SpeechSynthesisMock } from './__tests__/speechSynthesis.mock'
-import { SpeechSynthesisUtteranceMock } from './__tests__/speechSynthesisUtterance.mock'
+import { SpeechSynthesisMock } from './packages/tts-react/__tests__/speechSynthesis.mock.js'
+import { SpeechSynthesisUtteranceMock } from './packages/tts-react/__tests__/speechSynthesisUtterance.mock.js'
 import '@testing-library/jest-dom'
 
 beforeEach(() => {

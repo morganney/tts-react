@@ -32,7 +32,7 @@
   },
   "overrides": [
     {
-      "files": ["__tests__/**/*.mock.ts"],
+      "files": ["packages/tts-react/__tests__/**/*.mock.ts"],
       "rules": {
         "@typescript-eslint/no-empty-function": "off"
       }

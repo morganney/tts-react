@@ -280,6 +280,15 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 ## FAQ
 
 <details>
+<summary>Why is text inside child components not being spoken?</summary>
+<p>Due to the way <a href="https://react.dev/reference/react/Children#children-map-caveats"><code>Children.map</code></a> works</p>
+<blockquote>
+<p><strong>The traversal does not go deeper than React elements:</strong> they don't get rendered, and their children aren't traversed.</p>
+</blockquote>
+<p><code>tts-react</code> can not extract the text from child components. Instead, include the text as a <strong>direct</strong> child of <code>TextToSpeech</code> (or <code>useTts</code>).</p>
+</details>
+
+<details>
 <summary>Why does <code>markTextAsSpoken</code> sometimes highlight the wrong word?</summary>
 <p>The <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/boundary_event"><code>SpeechSynthesisUtterance</code> boundary event</a> <em>may</em> fire with skewed word boundaries for certain combinations of <code>spokenText</code> and <code>lang</code> or <code>voice</code> props. If you check the value of <code>state.boundary.word</code> in these cases, you will find the event is firing at unexpected boundaries, so there is no real solution other than to find a suitable <code>voice</code> for your given <code>spokenText</code>.</p>
 </details>

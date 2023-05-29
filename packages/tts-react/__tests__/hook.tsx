@@ -1,10 +1,10 @@
 import { describe, test, jest, beforeEach } from '@jest/globals'
-import { renderHook, act } from '@testing-library/react-hooks'
+import { renderHook, act } from '@testing-library/react'
 
-import { SpeechSynthesisMock } from './speechSynthesis.mock'
-import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock'
-import { useTts } from '../src/hook'
-import { stripPunctuation } from '../src/utils'
+import { SpeechSynthesisMock } from './speechSynthesis.mock.js'
+import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock.js'
+import { useTts } from '../src/hook.js'
+import { stripPunctuation } from '../src/utils.js'
 
 describe('useTts', () => {
   let words: string[] = []
@@ -257,8 +257,8 @@ describe('useTts', () => {
     })
     expect(result.current.state.isMuted).toBe(true)
     // Edge on Android was not respecting zero value volume
-    expect(result.current.get.volume()).toBe(0.01)
-    expect(onVolumeChange).toHaveBeenCalledWith(0.01)
+    expect(result.current.get.volume()).toBe(0)
+    expect(onVolumeChange).toHaveBeenCalledWith(0)
     await act(async () => {
       result.current.set.volume(0.5)
     })

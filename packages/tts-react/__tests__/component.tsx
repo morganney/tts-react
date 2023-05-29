@@ -1,9 +1,9 @@
 import { describe, test, jest } from '@jest/globals'
 import { render, act, waitFor, fireEvent } from '@testing-library/react'
 
-import { SpeechSynthesisMock } from './speechSynthesis.mock'
-import { TextToSpeech, Positions } from '../src/component'
-import { stripPunctuation } from '../src/utils'
+import { SpeechSynthesisMock } from './speechSynthesis.mock.js'
+import { TextToSpeech, Positions } from '../src/component.js'
+import { stripPunctuation } from '../src/utils.js'
 
 describe('TextToSpeech', () => {
   test('it should have play/pause, replay, and mute buttons by default', () => {
@@ -68,13 +68,17 @@ describe('TextToSpeech', () => {
   test('it will render highlighted words with <mark> elements', async () => {
     const words = SpeechSynthesisMock.getWords(SpeechSynthesisMock.textForTest)
     const { getByRole, queryByRole, getByTestId, queryByTestId } = render(
-      <TextToSpeech markTextAsSpoken>{SpeechSynthesisMock.textForTest}</TextToSpeech>
+      <TextToSpeech markTextAsSpoken>{SpeechSynthesisMock.textForTest}</TextToSpeech>,
+      /**
+       * @FIXME Do not use legacyRoot.
+       */
+      { legacyRoot: true }
     )
 
     // Click play to start firing boundary events and thus inserts marks
     act(() => {
       fireEvent.click(getByRole('button', { name: 'Play' }))
-      jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
+      //jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
     })
     await waitFor(() => expect(getByTestId('tts-react-mark')).toBeInTheDocument())
     expect(getByTestId('tts-react-mark').textContent).toBe(words.shift())

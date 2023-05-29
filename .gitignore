@@ -1,5 +1,7 @@
 *.tgz
 *.DS_Store
+*.tsbuildinfo
+npm-debug.log*
 dist
 node_modules
 coverage

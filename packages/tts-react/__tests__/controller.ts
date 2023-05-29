@@ -1,8 +1,8 @@
 import { describe, expect } from '@jest/globals'
 
-import { Controller, Events } from '../src/controller'
-import { SpeechSynthesisMock } from './speechSynthesis.mock'
-import type { TTSAudioData } from '../src/controller'
+import { Controller, Events } from '../src/controller.js'
+import { SpeechSynthesisMock } from './speechSynthesis.mock.js'
+import type { TTSAudioData } from '../src/controller.js'
 
 describe('Controller', () => {
   const fetchAudioDataResponse: TTSAudioData = {

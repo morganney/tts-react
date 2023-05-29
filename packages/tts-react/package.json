@@ -1,0 +1,66 @@
+{
+  "name": "tts-react",
+  "version": "2.0.0",
+  "description": "React hook and component for converting text to speech using the Web Speech API or Amazon Polly.",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./*": {
+      "import": "./dist/*.js",
+      "require": "./dist/cjs/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:esm": "BABEL_ENV=esm babel --root-mode upward src --out-dir dist --extensions '.ts,.tsx'",
+    "build:cjs": "BABEL_ENV=cjs babel --root-mode upward src --out-dir dist/cjs --extensions '.ts,.tsx'",
+    "build:umd": "BABEL_ENV=umd microbundle -i src/index.ts -o dist/umd/tts-react.min.js -f umd --no-pkg-main --name='TTSReact' --globals react='React' --jsx='' --jsxFragment='' --tsconfig='./tsconfig.umd.json'",
+    "build:base": "npm run build:types && npm run build:esm",
+    "build": "npm run build:base && npm run build:cjs && npm run build:umd && npm run dcts",
+    "dcts": "node --experimental-loader ts-node/esm dcts.ts",
+    "prepack": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/morganney/tts-react.git"
+  },
+  "bugs": {
+    "url": "https://github.com/morganney/tts-react/issues"
+  },
+  "engines": {
+    "node": ">=18.16.0",
+    "npm": ">=9.5.1"
+  },
+  "keywords": [
+    "text-to-speech",
+    "tts",
+    "react",
+    "speech",
+    "synthesis",
+    "amazon-polly"
+  ],
+  "author": "Morgan Ney <morganney@gmail.com>",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": ">=17.0.0",
+    "react-dom": ">=17.0.0"
+  }
+}

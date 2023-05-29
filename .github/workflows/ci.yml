@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3.4.1
         with:
-          node-version: '16.16.0'
+          node-version: '18.16.0'
       - name: Cache
         uses: actions/cache@v2.1.6
         with:
@@ -43,6 +43,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Pack
-        env:
-          BABEL_ENV: esm
-        run: npm pack
+        run: npm pack -w tts-react
+      - name: Build Story
+        run: npm run build:story

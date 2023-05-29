@@ -1,7 +1,7 @@
 import { describe } from '@jest/globals'
 import { render } from '@testing-library/react'
 
-import { Highlighter } from '../src/highlighter'
+import { Highlighter } from '../src/highlighter.js'
 
 describe('Highlighter', () => {
   it('wraps substrings of text with a <mark> when found', () => {
