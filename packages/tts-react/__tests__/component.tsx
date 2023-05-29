@@ -78,7 +78,7 @@ describe('TextToSpeech', () => {
     // Click play to start firing boundary events and thus inserts marks
     act(() => {
       fireEvent.click(getByRole('button', { name: 'Play' }))
-      //jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
+      jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
     })
     await waitFor(() => expect(getByTestId('tts-react-mark')).toBeInTheDocument())
     expect(getByTestId('tts-react-mark').textContent).toBe(words.shift())
