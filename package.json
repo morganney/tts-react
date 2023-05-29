@@ -19,7 +19,7 @@
     "build:story": "npm run build -w story",
     "prestory": "npm run build:tts",
     "story": "npm run start -w story",
-    "lint": "eslint . packages/**/{src,__tests__} --ignore-pattern dist --ext .ts,.tsx",
+    "lint": "eslint --ignore-pattern dist --ext .ts,.tsx . \"packages/**/{src,__tests__}/**\"",
     "prettier": "prettier --no-error-on-unmatched-pattern --write *.ts packages/**/{src,__tests__}/**/*.{ts,tsx}"
   },
   "devDependencies": {
