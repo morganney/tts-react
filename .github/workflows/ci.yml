@@ -14,18 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.5.2
       - name: Setup Node
-        uses: actions/setup-node@v3.4.1
+        uses: actions/setup-node@v3.6.0
         with:
-          node-version: '16.16.0'
-      - name: Cache
-        uses: actions/cache@v2.1.6
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: '18.16.0'
       - name: Install Dependencies
         run: npm ci
       - name: Save error log
@@ -43,6 +36,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Pack
-        env:
-          BABEL_ENV: esm
-        run: npm pack
+        run: npm pack -w tts-react
+      - name: Build Story
+        run: npm run build:story

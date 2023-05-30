@@ -1,7 +1,7 @@
 import { describe, jest } from '@jest/globals'
 import { render, fireEvent } from '@testing-library/react'
 
-import { Control } from '../src/control'
+import { Control } from '../src/control.js'
 
 describe('Control', () => {
   it('is a button used by TextToSpeech component', () => {

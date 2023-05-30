@@ -1,6 +1,6 @@
 import { describe } from '@jest/globals'
 
-import { icons } from '../src/icons'
+import { icons } from '../src/icons.js'
 
 describe('icons', () => {
   it('is a map of functions returning svg strings', () => {

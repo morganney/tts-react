@@ -10,10 +10,10 @@ import React, {
 } from 'react'
 import type { ReactNode } from 'react'
 
-import { Controller, Events } from './controller'
-import type { ControllerOptions, TTSBoundaryUpdate, TTSEvent } from './controller'
-import { isStringOrNumber, stripPunctuation } from './utils'
-import { Highlighter } from './highlighter'
+import { Controller, Events } from './controller.js'
+import type { ControllerOptions, TTSBoundaryUpdate, TTSEvent } from './controller.js'
+import { isStringOrNumber, stripPunctuation } from './utils.js'
+import { Highlighter } from './highlighter.js'
 
 /**
  * Event handler for a TTS event:

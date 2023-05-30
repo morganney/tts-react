@@ -1,4 +1,4 @@
-import { isPunctuation } from './utils'
+import { isPunctuation } from './utils.js'
 
 enum Events {
   BOUNDARY = 'boundary',
@@ -346,17 +346,12 @@ class Controller extends EventTarget {
     }
   }
 
-  /**
-   * Edge on Android was not working with toggling
-   * between volumes of zero and one. This sets a
-   * different lower and upper bound on the volume.
-   */
   get volumeMin(): number {
-    return 0.01
+    return 0
   }
 
   get volumeMax(): number {
-    return 0.99
+    return 1
   }
 
   get volume(): number {

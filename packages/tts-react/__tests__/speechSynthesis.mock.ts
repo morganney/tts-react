@@ -1,5 +1,5 @@
-import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock'
-import { SpeechSynthesisErrorEventMock } from './speechSynthesisErrorEvent.mock'
+import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock.js'
+import { SpeechSynthesisErrorEventMock } from './speechSynthesisErrorEvent.mock.js'
 
 interface SpeechSynthesisUtteranceEntry {
   utterance: SpeechSynthesisUtterance

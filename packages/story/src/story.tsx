@@ -1,9 +1,10 @@
-import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryFn } from '@storybook/react'
 import { faker } from '@faker-js/faker'
 import { useRef, useState, useEffect, useCallback } from 'react'
 import type { ChangeEventHandler, ChangeEvent, ReactNode } from 'react'
 import parse from 'html-react-parser'
 
+import { Child } from './child'
 import { audiosrc } from './assets'
 import {
   TextToSpeech,
@@ -12,8 +13,8 @@ import {
   useTts,
   TTSAudioData,
   TTSHookResponse
-} from '../src'
-import type { TTSHookProps, TTSEventHandler } from '../src'
+} from 'tts-react'
+import type { TTSHookProps, TTSEventHandler } from 'tts-react'
 
 type SpeakProps = Pick<TTSHookProps, 'children'>
 let voices: SpeechSynthesisVoice[] = []
@@ -50,7 +51,7 @@ const fetchAudioData = () =>
       })
     }, 1000)
   })
-const RandomSentence: ComponentStory<typeof TextToSpeech> = (args) => {
+const RandomSentence: StoryFn<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args}>
       {`${faker.random.words(3)}, `}
@@ -58,14 +59,14 @@ const RandomSentence: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const Sentence: ComponentStory<typeof TextToSpeech> = (args) => {
+const Sentence: StoryFn<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args}>
       <p>Converting text to speech with React!</p>
     </TextToSpeech>
   )
 }
-const Languages: ComponentStory<typeof TextToSpeech> = (args) => {
+const Languages: StoryFn<typeof TextToSpeech> = (args) => {
   const toLocales = (voices: SpeechSynthesisVoice[]) =>
     Array.from(new Set(voices.map((voice) => voice.lang)))
   const [locales, setLocales] = useState(() =>
@@ -118,7 +119,7 @@ const Languages: ComponentStory<typeof TextToSpeech> = (args) => {
     </>
   )
 }
-const LangES_ES: ComponentStory<typeof TextToSpeech> = (args) => {
+const LangES_ES: StoryFn<typeof TextToSpeech> = (args) => {
   const esVoices = voices.filter((voice) => voice.lang === 'es-ES')
   const voice = esVoices.find((voice) => voice.name === 'Monica') ?? esVoices[0]
 
@@ -128,7 +129,7 @@ const LangES_ES: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const Android: ComponentStory<typeof TextToSpeech> = (args) => {
+const Android: StoryFn<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args} useStopOverPause>
       <p>
@@ -139,7 +140,7 @@ const Android: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
+const ImageText: StoryFn<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args}>
       <figure style={{ textAlign: 'center' }}>
@@ -155,7 +156,7 @@ const ImageText: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
+const RandomText: StoryFn<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args}>
       {Array.from({ length: 3 }, (v, i) => i).map((item) => (
@@ -168,7 +169,7 @@ const RandomText: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const SpeakComponent: ComponentStory<typeof TextToSpeech> = (args) => {
+const SpeakComponent: StoryFn<typeof TextToSpeech> = (args) => {
   const Speak = ({ children }: SpeakProps) => (
     <>
       {
@@ -184,7 +185,7 @@ const SpeakComponent: ComponentStory<typeof TextToSpeech> = (args) => {
     </Speak>
   )
 }
-const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
+const Hook: StoryFn<typeof TextToSpeech> = (args) => {
   const [pitch, setPitch] = useState(1)
   const [volume, setVolume] = useState(1)
   const [rate, setRate] = useState(1)
@@ -356,7 +357,7 @@ const Hook: ComponentStory<typeof TextToSpeech> = (args) => {
     </div>
   )
 }
-const Component: ComponentStory<typeof TextToSpeech> = (args) => {
+const Component: StoryFn<typeof TextToSpeech> = (args) => {
   return (
     <TextToSpeech {...args}>
       <div>
@@ -374,7 +375,7 @@ const Component: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const DangerouslySetInnerHTML: ComponentStory<typeof TextToSpeech> = (args) => {
+const DangerouslySetInnerHTML: StoryFn<typeof TextToSpeech> = (args) => {
   const html = '<ul><li>one</li><li>two</li><li>three</li></ul>'
 
   return (
@@ -399,7 +400,7 @@ const DangerouslySetInnerHTML: ComponentStory<typeof TextToSpeech> = (args) => {
     </>
   )
 }
-const ErrorExample: ComponentStory<typeof TextToSpeech> = (args) => {
+const ErrorExample: StoryFn<typeof TextToSpeech> = (args) => {
   const fetchAudioData = () =>
     Promise.resolve({
       marks: [],
@@ -412,7 +413,7 @@ const ErrorExample: ComponentStory<typeof TextToSpeech> = (args) => {
     </TextToSpeech>
   )
 }
-const AmazonPollyHook: ComponentStory<typeof TextToSpeech> = (args) => {
+const AmazonPollyHook: StoryFn<typeof TextToSpeech> = (args) => {
   const children = (
     <p>
       You can use Amazon Polly with <code>fetchAudioData</code>.
@@ -442,7 +443,7 @@ const AmazonPollyHook: ComponentStory<typeof TextToSpeech> = (args) => {
     </>
   )
 }
-const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
+const AmazonPolly: StoryFn<typeof TextToSpeech> = (args) => {
   return (
     <>
       <p>
@@ -459,8 +460,27 @@ const AmazonPolly: ComponentStory<typeof TextToSpeech> = (args) => {
     </>
   )
 }
+const ReactComponentAsChild: StoryFn<typeof TextToSpeech> = (args) => {
+  return (
+    <>
+      <p>
+        Due to the way{' '}
+        <a href="https://react.dev/reference/react/Children#children-map-caveats">
+          <code>Children.map</code>
+        </a>{' '}
+        works in React, <code>tts-react</code> can not add text from child components to
+        the speech synthesis utterance. Instead, include that text as a{' '}
+        <strong>direct</strong> child to <code>TextToSpeech</code>.
+      </p>
+      <TextToSpeech {...args}>
+        <p>The text from children components will not be spoken.</p>
+        <Child />
+      </TextToSpeech>
+    </>
+  )
+}
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const CountOnEnd: ComponentStory<typeof TextToSpeech> = (args) => {
+const CountOnEnd: StoryFn<typeof TextToSpeech> = (args) => {
   const [count, setCount] = useState(1)
   const [counting, setCounting] = useState(false)
   const { ttsChildren, play } = useTts({
@@ -514,6 +534,9 @@ LangES_ES.argTypes = {
     control: false
   }
 }
+LangES_ES.args = {
+  size: Sizes.SMALL
+}
 Languages.argTypes = {
   voice: {
     control: false
@@ -521,6 +544,9 @@ Languages.argTypes = {
   lang: {
     control: false
   }
+}
+Languages.args = {
+  size: Sizes.SMALL
 }
 Hook.argTypes = {
   size: {
@@ -576,6 +602,9 @@ Android.argTypes = {
 ImageText.args = {
   position: Positions.BC
 }
+Sentence.args = {
+  size: Sizes.SMALL
+}
 
 export default {
   title: 'tts-react',
@@ -593,6 +622,7 @@ export default {
     markBackgroundColor: '#55AD66',
     useStopOverPause: /android/i.test(navigator?.userAgent)
   },
+  tags: ['autodocs'],
   argTypes: {
     lang: {
       options: voices.length
@@ -684,7 +714,7 @@ export default {
       }
     }
   }
-} as ComponentMeta<typeof TextToSpeech>
+} as Meta<typeof TextToSpeech>
 
 export {
   Hook,
@@ -700,5 +730,6 @@ export {
   Sentence,
   RandomSentence,
   RandomText,
+  ReactComponentAsChild,
   ErrorExample
 }

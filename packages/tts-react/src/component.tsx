@@ -2,12 +2,12 @@
 import React, { useMemo, useCallback } from 'react'
 import type { CSSProperties } from 'react'
 
-import { useTts } from './hook'
-import type { TTSHookProps } from './hook'
-import { iconSizes, Sizes } from './icons'
-import type { SvgProps } from './icons'
-import { Control, padding as ctrlPadding } from './control'
-import type { ControlProps } from './control'
+import { useTts } from './hook.js'
+import type { TTSHookProps } from './hook.js'
+import { iconSizes, Sizes } from './icons.js'
+import type { SvgProps } from './icons.js'
+import { Control, padding as ctrlPadding } from './control.js'
+import type { ControlProps } from './control.js'
 
 enum Positions {
   TL = 'topLeft',
@@ -229,6 +229,6 @@ const TextToSpeech = ({
   )
 }
 
-export { Sizes } from './icons'
+export { Sizes } from './icons.js'
 export { TextToSpeech, Positions }
 export type { TTSProps }

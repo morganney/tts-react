@@ -1,4 +1,4 @@
-import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock'
+import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock.js'
 
 class SpeechSynthesisErrorEventMock extends SpeechSynthesisEventMock {
   #error = ''

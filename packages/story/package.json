@@ -1,0 +1,28 @@
+{
+  "name": "story",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Storybook of tts-react.",
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "start": "storybook dev -p 3000",
+    "build": "storybook build  -o build -c .storybook",
+    "serve": "http-server ./build -p 3000"
+  },
+  "author": "Morgan Ney <morganney@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@faker-js/faker": "^7.6.0",
+    "@storybook/addon-a11y": "^7.0.18",
+    "@storybook/addon-actions": "^7.0.18",
+    "@storybook/addon-controls": "^7.0.18",
+    "@storybook/addon-docs": "^7.0.18",
+    "@storybook/react": "^7.0.18",
+    "@storybook/react-webpack5": "^7.0.18",
+    "html-react-parser": "^3.0.16",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "storybook": "^7.0.18",
+    "tts-react": "^2.0.0"
+  }
+}

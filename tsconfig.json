@@ -2,17 +2,13 @@
   "compilerOptions": {
     "target": "es6",
     "jsx": "react-jsx",
-    "module": "Node16",
-    "rootDir": "src",
-    "declaration": true,
-    "outDir": "dist",
+    "module": "esnext",
+    "moduleResolution": "nodenext",
+    "declaration": false,
     "isolatedModules": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true
-  },
-  "include": [
-    "src"
-  ]
+  }
 }

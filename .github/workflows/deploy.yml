@@ -17,11 +17,11 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.5.2
       - name: Setup Node
-        uses: actions/setup-node@v3.4.1
+        uses: actions/setup-node@v3.6.0
         with:
-          node-version: '16.16.0'
+          node-version: '18.16.0'
       - name: Install Dependencies
         run: npm ci
       - name: Save error log
@@ -31,12 +31,12 @@ jobs:
           name: npm-debug-log-${{ hashFiles('package-lock.json') }}
           path: npm-debug.log
       - name: Build
-        run: npm run build:storybook
+        run: npm run build:story
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.4.0
+        uses: JamesIves/github-pages-deploy-action@v4.4.2
         with:
           branch: gh-pages
-          folder: demo/build
+          folder: packages/story/build
   fail:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}

@@ -1,8 +1,8 @@
 {
   "collectCoverage": true,
   "collectCoverageFrom": [
-    "**/src/**/*.ts",
-    "**/src/**/*.tsx",
+    "**/packages/tts-react/src/**/*.ts",
+    "**/packages/tts-react/src/**/*.tsx",
     "!**/node_modules/**"
   ],
   "coverageReporters": [
@@ -21,6 +21,7 @@
     }
   },
   "modulePathIgnorePatterns": ["dist"],
+  "resolver": "ts-jest-resolver",
   "setupFilesAfterEnv": ["<rootDir>/jest.setup.ts"],
   "testEnvironment": "jest-environment-jsdom",
   "testMatch": [
