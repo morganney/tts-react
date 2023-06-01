@@ -23,6 +23,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "storybook": "^7.0.18",
-    "tts-react": "^2.0.0"
+    "tts-react": "^3.0.0"
   }
 }
