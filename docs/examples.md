@@ -12,7 +12,7 @@ Using `tts-react` from a CDN:
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/tts-react@1.2.0/dist/umd/tts-react.min.js"></script>
+    <script src="https://unpkg.com/tts-react@3.0.0/dist/umd/tts-react.min.js"></script>
   </head>
   <body>
     <div id="root"></div>
