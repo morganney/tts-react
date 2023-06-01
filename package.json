@@ -50,14 +50,5 @@
     "ts-jest-resolver": "^2.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/morganney/tts-react.git"
-  },
-  "bugs": {
-    "url": "https://github.com/morganney/tts-react/issues"
-  },
-  "author": "Morgan Ney <morganney@gmail.com>",
-  "license": "MIT"
+  }
 }
