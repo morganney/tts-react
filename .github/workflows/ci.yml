@@ -36,6 +36,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Pack
-        run: npm pack -w tts-react
+        run: npm pack --pack-destination=packages/tts-react --workspace=tts-react
       - name: Build Story
         run: npm run build:story

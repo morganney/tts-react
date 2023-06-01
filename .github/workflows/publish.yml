@@ -27,6 +27,8 @@ jobs:
         run: npm run lint
       - name: Test
         run: npm test
+      - name: Pack
+        run: npm pack --pack-destination=packages/tts-react --workspace=tts-react
       - name: Push to NPM registry
         uses: JS-DevTools/npm-publish@v2.1.0
         with:
