@@ -12,12 +12,12 @@ Repository for `tts-react`, a React component and hook that uses the [`SpeechSyn
 
 `npm i react react-dom tts-react`
 
-## Demo (Storybook)
-
-[morganney.github.io/tts-react](https://morganney.github.io/tts-react/)
-
 ## Table of Contents
 
 * [tts-react](./packages/tts-react)
 * [storybook](./packages/story)
 * [examples](./docs/examples.md)
+
+## Demo (Storybook)
+
+[morganney.github.io/tts-react](https://morganney.github.io/tts-react/)
