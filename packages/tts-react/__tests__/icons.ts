@@ -1,15 +1,15 @@
 import { describe } from '@jest/globals'
 
-import { icons } from '../src/icons.js'
+import { icons, Sizes } from '../src/icons.js'
 
 describe('icons', () => {
   it('is a map of functions returning svg strings', () => {
-    expect(icons.play({ size: undefined })).toContain('svg')
-    expect(icons.stop({ size: undefined })).toContain('svg')
-    expect(icons.pause({ size: undefined })).toContain('svg')
-    expect(icons.replay({ size: undefined })).toContain('svg')
-    expect(icons.volumeDown({ size: undefined })).toContain('svg')
-    expect(icons.volumeUp({ size: undefined })).toContain('svg')
-    expect(icons.volumeOff({ size: undefined })).toContain('svg')
+    expect(icons.play(Sizes.MEDIUM)).toContain('<svg')
+    expect(icons.stop(Sizes.MEDIUM)).toContain('<svg')
+    expect(icons.pause(Sizes.MEDIUM)).toContain('<svg')
+    expect(icons.replay(Sizes.MEDIUM)).toContain('<svg')
+    expect(icons.volumeDown(Sizes.MEDIUM)).toContain('<svg')
+    expect(icons.volumeUp(Sizes.MEDIUM)).toContain('<svg')
+    expect(icons.volumeOff(Sizes.MEDIUM)).toContain('<svg')
   })
 })

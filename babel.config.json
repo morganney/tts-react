@@ -21,19 +21,7 @@
         }]
       ]
     },
-    "cjs": {
-      "presets": [
-        ["@babel/preset-env", {
-          "modules": "commonjs"
-        }]
-      ],
-      "plugins": [
-        ["react-remove-properties", {
-          "properties": ["data-testid"]
-        }]
-      ]
-    },
-    "esm": {
+    "dual": {
       "presets": [
         ["@babel/preset-env", {
           "modules": false

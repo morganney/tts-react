@@ -108,7 +108,8 @@ const content = (): CSSProperties => {
  * `useTts` is a React hook for converting text to speech using
  * the `SpeechSynthesis` and `SpeechSynthesisUtterance` Browser API's.
  * Optionally, you can fallback to using the `HTMLAudioElement` API
- * when setting the `fetchAudioData` prop, for example to use Amazon Polly.
+ * when setting the `fetchAudioData` prop, for example to use Amazon Polly,
+ * or MS Azure Cognitive Speech Services.
  *
  * The `TextToSpeech` component is an implementation of `useTts` that provides
  * controls for playing, pausing/stopping, and replaying the spoken text.
