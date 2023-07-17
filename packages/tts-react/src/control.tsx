@@ -57,7 +57,7 @@ const Control = ({
 }: ControlProps) => {
   const styleDataId = 'tts-react-controls'
   const svg = useMemo(() => {
-    return icons[type]({ size })
+    return icons[type](size)
   }, [type, size])
   const btnStyle = useMemo(() => button({ size, align, type }), [size, align, type])
 

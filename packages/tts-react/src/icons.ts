@@ -4,8 +4,9 @@ enum Sizes {
   LARGE = 'large'
 }
 
+type Size = `${Sizes}`
 interface SvgProps {
-  size: `${Sizes}`
+  size: Size
 }
 
 const iconSizes = {
@@ -14,7 +15,7 @@ const iconSizes = {
   large: 32
 }
 const icons = {
-  play({ size = Sizes.MEDIUM }: SvgProps) {
+  play(size: Size) {
     return `
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -32,7 +33,7 @@ const icons = {
       </svg>
     `
   },
-  pause({ size = Sizes.MEDIUM }: SvgProps) {
+  pause(size: Size) {
     return `
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -50,7 +51,7 @@ const icons = {
       </svg>
     `
   },
-  stop({ size = Sizes.MEDIUM }: SvgProps) {
+  stop(size: Size) {
     return `
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -68,7 +69,7 @@ const icons = {
       </svg>
     `
   },
-  replay({ size = Sizes.MEDIUM }: SvgProps) {
+  replay(size: Size) {
     return `
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -86,7 +87,7 @@ const icons = {
       </svg>
     `
   },
-  volumeDown({ size = Sizes.MEDIUM }: SvgProps) {
+  volumeDown(size: Size) {
     return `
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -104,7 +105,7 @@ const icons = {
       </svg>
     `
   },
-  volumeOff({ size = Sizes.MEDIUM }: SvgProps) {
+  volumeOff(size: Size) {
     return `
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -122,7 +123,7 @@ const icons = {
       </svg>
     `
   },
-  volumeUp({ size = Sizes.MEDIUM }: SvgProps) {
+  volumeUp(size: Size) {
     return `
       <svg
         xmlns="http://www.w3.org/2000/svg"
