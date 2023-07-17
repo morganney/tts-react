@@ -12,4 +12,18 @@ describe('icons', () => {
     expect(icons.volumeUp({ size: Sizes.MEDIUM })).toContain('svg')
     expect(icons.volumeOff({ size: Sizes.MEDIUM })).toContain('svg')
   })
+
+  it('uses a default size of medium', () => {
+    const missing: unknown = undefined
+
+    expect(icons.play({ size: Sizes.MEDIUM })).toContain('height="24px"')
+
+    expect(icons.play({ size: missing as Sizes })).toContain('height="24px"')
+    expect(icons.stop({ size: missing as Sizes })).toContain('width="24px"')
+    expect(icons.pause({ size: missing as Sizes })).toContain('height="24px"')
+    expect(icons.replay({ size: missing as Sizes })).toContain('width="24px"')
+    expect(icons.volumeDown({ size: missing as Sizes })).toContain('height="24px"')
+    expect(icons.volumeUp({ size: missing as Sizes })).toContain('height="24px"')
+    expect(icons.volumeOff({ size: missing as Sizes })).toContain('height="24px"')
+  })
 })
