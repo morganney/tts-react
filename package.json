@@ -38,7 +38,7 @@
     "babel-dual-package": "^1.0.0-alpha.2",
     "babel-jest": "^29.5.0",
     "babel-plugin-react-remove-properties": "^0.3.0",
-    "codecov": "^3.8.3",
+    "codecov": "^4.0.0-0",
     "eslint": "^8.23.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-react": "^7.31.1",
