@@ -4,11 +4,7 @@ coverage:
       default:
         target: 80%
         threshold: 0
-        paths:
-          - "packages/tts-react/src"
     patch:
       default:
         target: 81%
         threshold: 0.5
-        paths:
-          - "packages/tts-react/src"
