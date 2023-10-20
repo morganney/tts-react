@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "jsx": "react-jsx",
-    "module": "esnext",
+    "module": "nodenext",
     "moduleResolution": "nodenext",
     "declaration": false,
     "isolatedModules": true,

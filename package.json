@@ -35,7 +35,7 @@
     "@types/react-dom": "^17.0.17",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
-    "babel-dual-package": "^1.0.0-alpha.2",
+    "babel-dual-package": "^1.1.2",
     "babel-jest": "^29.5.0",
     "babel-plugin-react-remove-properties": "^0.3.0",
     "codecov": "^4.0.0-0",
