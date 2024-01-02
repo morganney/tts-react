@@ -50,8 +50,8 @@ Using `tts-react` from a CDN:
 Counting on command:
 
 ```tsx
-import { useState, useCallback } from 'react'
-import { useTts } from 'tts-reat'
+import { useState, useCallback, useEffect } from 'react'
+import { useTts } from 'tts-react'
 
 const CountOnEnd = () => {
   const [count, setCount] = useState(1)
