@@ -9,18 +9,6 @@
     }]
   ],
   "env": {
-    "umd": {
-      "presets": [
-        ["@babel/preset-env", {
-          "modules": "umd"
-        }]
-      ],
-      "plugins": [
-        ["react-remove-properties", {
-          "properties": ["data-testid"]
-        }]
-      ]
-    },
     "dual": {
       "presets": [
         ["@babel/preset-env", {
