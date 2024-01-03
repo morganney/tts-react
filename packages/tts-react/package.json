@@ -1,6 +1,6 @@
 {
   "name": "tts-react",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "React hook and component for converting text to speech using the Web Speech API or Amazon Polly.",
   "type": "module",
   "main": "dist/index.js",
@@ -28,7 +28,7 @@
     "check-types": "tsc --noEmit",
     "build:types": "tsc --emitDeclarationOnly",
     "build:dual": "BABEL_ENV=dual babel-dual-package --root-mode upward --out-dir dist --extensions .ts,.tsx src",
-    "build:umd": "BABEL_ENV=umd microbundle -i src/index.ts -o dist/umd/tts-react.min.js -f umd --no-pkg-main --name='TTSReact' --globals react='React' --jsx='' --jsxFragment='' --tsconfig='./tsconfig.umd.json'",
+    "build:umd": "NODE_ENV=production vite build",
     "build": "npm run build:types && npm run build:dual && npm run build:umd",
     "prepack": "npm run build"
   },
