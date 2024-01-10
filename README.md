@@ -21,3 +21,7 @@ Repository for `tts-react`, a React component and hook that uses the [`SpeechSyn
 ## Demo (Storybook)
 
 [morganney.github.io/tts-react](https://morganney.github.io/tts-react/)
+
+## Progress
+
+* Helped fix a `SpeechSynthesisUtterance` default volume [Chrome bug](https://bugs.chromium.org/p/chromium/issues/detail?id=1385117).
