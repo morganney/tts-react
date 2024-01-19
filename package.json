@@ -50,6 +50,6 @@
     "prettier": "^2.7.1",
     "ts-jest-resolver": "^2.0.1",
     "typescript": "^5.0.4",
-    "vite": "^5.0.10"
+    "vite": "^5.0.12"
   }
 }
