@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v4.1.1
       - name: Setup Node
-        uses: actions/setup-node@v3.6.0
+        uses: actions/setup-node@v4.0.1
         with:
           node-version: '18.16.0'
       - name: Install Dependencies
         run: npm ci
       - name: Save error log
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.3.0
         if: ${{ failure() }}
         with:
           name: npm-debug-log-${{ hashFiles('package-lock.json') }}
@@ -32,7 +32,7 @@ jobs:
       - name: Test
         run: npm test
       - name: Report Coverage
-        uses: codecov/codecov-action@v3.1.4
+        uses: codecov/codecov-action@v3.1.5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Pack
