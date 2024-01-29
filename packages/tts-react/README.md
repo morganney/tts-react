@@ -280,6 +280,11 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 ## FAQ
 
 <details>
+<summary>Why does speaking sometimes stop prematurely around 255 characters?</summary>
+<p>This is independent of <code>tts-react</code> and will happen if you are using the <code>SpeechSynthesis</code> Web Speech API on a platform that only provides network-based <code>SpeechSynthesisVoice</code>s. See the <a href="https://github.com/morganney/tts-react/issues/63">associated issue</a> for more details. Unfortunately, all you can really do is try another platform that has local voices installed.</p>
+</details>
+
+<details>
 <summary>Why is text inside child components not being spoken?</summary>
 <p>Due to the way <a href="https://react.dev/reference/react/Children#children-map-caveats"><code>Children.map</code></a> works</p>
 <blockquote>
@@ -294,8 +299,8 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 </details>
 
 <details>
-<summary>Why does <code>markTextAsSpoken</code> not work on Chrome for Android?</summary>
-<p>This is a known issue by the Chromium team that apparently they are <a href="https://bugs.chromium.org/p/chromium/issues/detail?id=521666#c7" target="_blank">not going to fix</a>. You can use <code>fetchAudioData</code> to fallback to the <code>HTMLAudioElement</code>, or try a different browser.</p>
+<summary>Why does <code>markTextAsSpoken</code> not work on Chrome for Android or Linux?</summary>
+<p>This is a known issue by the Chromium team that apparently they are <a href="https://bugs.chromium.org/p/chromium/issues/detail?id=521666#c7" target="_blank">not going to fix</a>. There is <a href="https://stackoverflow.com/questions/75177288/onboundary-event-doesnt-fire-in-chrome-on-ubuntu-20-04-and-above/77889844#77889844">no <code>boundary</code> event fired on platforms that only support network-based voices</a>. You can use <code>fetchAudioData</code> to fallback to the <code>HTMLAudioElement</code>, or try a different browser/OS.</p>
 </details>
 
 <details>
@@ -312,5 +317,5 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 
 <details>
 <summary>What's up with Safari?</summary>
-<p>Safari simply does not follow the spec completely (yet). As one example, Safari 15.6.1 on macOS Monterey 12.5.1, throws a <code>SpeechSynthesisEvent</code> during a <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/error_event"><code>SpeechSynthesisUtterance.error</code></a>, while the spec says errors against utterances <a href="https://wicg.github.io/speech-api/#utterance-events">"must use the SpeechSynthesisErrorEvent interface"</a>.</p>
+<p>Safari is becoming the new IE, and simply does not follow the spec completely (yet). As one example, Safari 15.6.1 on macOS Monterey 12.5.1, throws a <code>SpeechSynthesisEvent</code> during a <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/error_event"><code>SpeechSynthesisUtterance.error</code></a>, while the spec says errors against utterances <a href="https://wicg.github.io/speech-api/#utterance-events">"must use the SpeechSynthesisErrorEvent interface"</a>.</p>
 </details>
