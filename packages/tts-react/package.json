@@ -1,6 +1,6 @@
 {
   "name": "tts-react",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "description": "React hook and component for converting text to speech using the Web Speech API or Amazon Polly.",
   "type": "module",
   "main": "dist/index.js",
@@ -48,8 +48,9 @@
     "text-to-speech",
     "tts",
     "react",
-    "speech",
-    "synthesis",
+    "component",
+    "hook",
+    "speech synthesis",
     "amazon-polly"
   ],
   "author": "Morgan Ney <morganney@gmail.com>",
