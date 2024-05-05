@@ -13,17 +13,17 @@
   "license": "MIT",
   "dependencies": {
     "@faker-js/faker": "^7.6.0",
-    "@storybook/addon-a11y": "^8.0.5",
-    "@storybook/addon-actions": "^8.0.5",
-    "@storybook/addon-controls": "^8.0.5",
-    "@storybook/addon-docs": "^8.0.5",
+    "@storybook/addon-a11y": "^8.0.10",
+    "@storybook/addon-actions": "^8.0.10",
+    "@storybook/addon-controls": "^8.0.10",
+    "@storybook/addon-docs": "^8.0.10",
     "@storybook/addon-webpack5-compiler-babel": "^3.0.3",
-    "@storybook/react": "^8.0.5",
-    "@storybook/react-webpack5": "^8.0.5",
+    "@storybook/react": "^8.0.10",
+    "@storybook/react-webpack5": "^8.0.10",
     "html-react-parser": "^3.0.16",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "storybook": "^8.0.5",
-    "tts-react": "^3.0.2"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "storybook": "^8.0.10",
+    "tts-react": "^3.0.7"
   }
 }

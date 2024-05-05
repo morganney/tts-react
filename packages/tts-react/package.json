@@ -1,6 +1,6 @@
 {
   "name": "tts-react",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "React hook and component for converting text to speech using the Web Speech API or Amazon Polly.",
   "type": "module",
   "main": "dist/index.js",
@@ -59,7 +59,7 @@
     "dist"
   ],
   "peerDependencies": {
-    "react": ">=17.0.0",
-    "react-dom": ">=17.0.0"
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
   }
 }
