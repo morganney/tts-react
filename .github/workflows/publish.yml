@@ -30,7 +30,7 @@ jobs:
       - name: Pack
         run: npm pack --pack-destination=packages/tts-react --workspace=tts-react
       - name: Push to NPM registry
-        uses: JS-DevTools/npm-publish@v3.0.1
+        uses: JS-DevTools/npm-publish@v3.1.1
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
           package: packages/tts-react

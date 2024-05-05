@@ -386,7 +386,7 @@ class Controller extends EventTarget {
      * @see https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1300
      */
     if (this.#synthesizer instanceof HTMLAudioElement) {
-      // eslint-disable-next-line @typescript-eslint/no-extra-semi
+      // eslint-disable-next-line no-extra-semi
       ;(
         this.#synthesizer as HTMLAudioElement & { preservesPitch: boolean }
       ).preservesPitch = value
