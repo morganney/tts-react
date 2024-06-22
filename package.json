@@ -28,6 +28,7 @@
     "@babel/preset-env": "^7.23.7",
     "@babel/preset-react": "^7.23.3",
     "@babel/preset-typescript": "^7.23.3",
+    "@knighted/duel": "^2.0.0-rc.1",
     "@testing-library/jest-dom": "^6.4.5",
     "@testing-library/react": "^15.0.6",
     "@testing-library/user-event": "^14.5.2",
@@ -50,7 +51,10 @@
     "jest-environment-jsdom": "^29.7.0",
     "prettier": "^3.2.5",
     "ts-jest-resolver": "^2.0.1",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.8"
+    "typescript": "^5.5.2"
+  },
+  "overrides": {
+    "react": "^19.0.0-rc.0",
+    "react-dom": "^19.0.0-rc.0"
   }
 }
