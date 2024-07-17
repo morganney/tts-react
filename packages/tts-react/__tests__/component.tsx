@@ -6,7 +6,7 @@ import { TextToSpeech, Positions } from '../src/component.js'
 import { stripPunctuation } from '../src/utils.js'
 
 describe('TextToSpeech', () => {
-  test('it should have play/pause, replay, and mute buttons by default', () => {
+  test('it should have play/pause, replay, and mute buttons by default', async () => {
     const onMuteToggled = jest.fn()
     const { getByRole, queryByRole } = render(
       <TextToSpeech onMuteToggled={onMuteToggled}>
@@ -20,7 +20,7 @@ describe('TextToSpeech', () => {
     expect(queryByRole('button', { name: 'Replay' })).not.toBeInTheDocument()
 
     // Click play check for pause button
-    act(() => {
+    await act(async () => {
       fireEvent.click(getByRole('button', { name: 'Play' }))
     })
     expect(global.speechSynthesis.cancel).toHaveBeenCalled()
@@ -37,7 +37,7 @@ describe('TextToSpeech', () => {
     expect(getByRole('button', { name: 'Replay' })).toBeInTheDocument()
 
     // Click mute, check that the callback was invoked
-    act(() => {
+    await act(async () => {
       fireEvent.click(getByRole('button', { name: 'Mute' }))
     })
     expect(onMuteToggled).toHaveBeenCalledWith(false)
@@ -47,13 +47,13 @@ describe('TextToSpeech', () => {
     expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(1)
   })
 
-  test('it will use a stop button with prop useStopOverPause', () => {
+  test('it will use a stop button with prop useStopOverPause', async () => {
     const { getByRole } = render(
       <TextToSpeech useStopOverPause>{SpeechSynthesisMock.textForTest}</TextToSpeech>
     )
 
     // Click play check for stop button
-    act(() => {
+    await act(async () => {
       fireEvent.click(getByRole('button', { name: 'Play' }))
     })
     expect(getByRole('button', { name: 'Stop' })).toBeInTheDocument()
@@ -68,11 +68,7 @@ describe('TextToSpeech', () => {
   test('it will render highlighted words with <mark> elements', async () => {
     const words = SpeechSynthesisMock.getWords(SpeechSynthesisMock.textForTest)
     const { getByRole, queryByRole, getByTestId, queryByTestId } = render(
-      <TextToSpeech markTextAsSpoken>{SpeechSynthesisMock.textForTest}</TextToSpeech>,
-      /**
-       * @FIXME Do not use legacyRoot.
-       */
-      { legacyRoot: true }
+      <TextToSpeech markTextAsSpoken>{SpeechSynthesisMock.textForTest}</TextToSpeech>
     )
 
     // Click play to start firing boundary events and thus inserts marks

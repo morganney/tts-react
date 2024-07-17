@@ -6,7 +6,7 @@ class SpeechSynthesisEventMock extends Event {
     super(type)
 
     this.#utterance = init.utterance
-    this.#charIndex = init?.charIndex
+    this.#charIndex = init.charIndex
   }
 
   get charIndex() {

@@ -70,7 +70,7 @@ const Languages: StoryFn<typeof TextToSpeech> = (args) => {
   const toLocales = (voices: SpeechSynthesisVoice[]) =>
     Array.from(new Set(voices.map((voice) => voice.lang)))
   const [locales, setLocales] = useState(() =>
-    toLocales(window.speechSynthesis?.getVoices() ?? [])
+    toLocales(window.speechSynthesis.getVoices() ?? [])
   )
   const [lang, setLang] = useState<string | undefined>()
   const [disabled, setDisabled] = useState(false)
@@ -83,7 +83,7 @@ const Languages: StoryFn<typeof TextToSpeech> = (args) => {
 
   useEffect(() => {
     if (!voices.length) {
-      voices = window.speechSynthesis?.getVoices()
+      voices = window.speechSynthesis.getVoices()
       setLocales(toLocales(voices))
     }
   }, [])
@@ -189,7 +189,7 @@ const Hook: StoryFn<typeof TextToSpeech> = (args) => {
   const [pitch, setPitch] = useState(1)
   const [volume, setVolume] = useState(1)
   const [rate, setRate] = useState(1)
-  const [voices, setVoices] = useState(window.speechSynthesis?.getVoices() ?? [])
+  const [voices, setVoices] = useState(window.speechSynthesis.getVoices() ?? [])
   const [voice, setVoice] = useState<SpeechSynthesisVoice | undefined>()
   const prevVolume = useRef(volume)
   const {
@@ -206,8 +206,8 @@ const Hook: StoryFn<typeof TextToSpeech> = (args) => {
     voice,
     children: 'The hook can be used to create custom controls.'
   })
-  const onMuteChanged = useCallback(() => {
-    toggleMute((wasMuted) => {
+  const onMuteChanged = useCallback(async () => {
+    await toggleMute((wasMuted) => {
       setVolume(wasMuted ? prevVolume.current : 0)
       set.volume(wasMuted ? prevVolume.current : 0)
     })
@@ -283,7 +283,10 @@ const Hook: StoryFn<typeof TextToSpeech> = (args) => {
       ) : typeof window.speechSynthesis !== 'undefined' ? (
         <p>
           Click&nbsp;
-          <button onClick={() => setVoices(window.speechSynthesis.getVoices())}>
+          <button
+            onClick={() => {
+              setVoices(window.speechSynthesis.getVoices())
+            }}>
             load
           </button>
           &nbsp;to select speech synthesis voices.
@@ -431,14 +434,14 @@ const AmazonPollyHook: StoryFn<typeof TextToSpeech> = (args) => {
 
   return (
     <>
-      <button disabled={state.isPlaying} onClick={() => play()}>
+      <button disabled={state.isPlaying} onClick={play}>
         Play
       </button>
-      <button disabled={!state.isPlaying} onClick={() => pause()}>
+      <button disabled={!state.isPlaying} onClick={pause}>
         Pause
       </button>
-      <button onClick={() => stop()}>Stop</button>
-      <button onClick={() => replay()}>Replay</button>
+      <button onClick={stop}>Stop</button>
+      <button onClick={replay}>Replay</button>
       <div>{ttsChildren}</div>
     </>
   )
@@ -493,17 +496,30 @@ const CountOnEnd: StoryFn<typeof TextToSpeech> = (args) => {
   })
 
   useEffect(() => {
-    if (counting) {
-      play()
+    const doCount = async () => {
+      if (counting) {
+        await play()
+      }
     }
+
+    void doCount()
   }, [count, counting, play])
 
   return (
     <>
-      <button disabled={counting} onClick={() => setCounting(true)}>
+      <button
+        disabled={counting}
+        onClick={() => {
+          setCounting(true)
+        }}>
         Start
       </button>
-      <button onClick={() => setCounting(false)}>Stop</button>
+      <button
+        onClick={() => {
+          setCounting(false)
+        }}>
+        Stop
+      </button>
       <p>{ttsChildren}</p>
     </>
   )
@@ -620,7 +636,7 @@ export default {
     markTextAsSpoken: true,
     markColor: 'white',
     markBackgroundColor: '#55AD66',
-    useStopOverPause: /android/i.test(navigator?.userAgent)
+    useStopOverPause: /android/i.test(navigator.userAgent)
   },
   tags: ['autodocs'],
   argTypes: {

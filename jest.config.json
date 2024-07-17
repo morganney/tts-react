@@ -23,7 +23,7 @@
   "modulePathIgnorePatterns": ["dist"],
   "resolver": "ts-jest-resolver",
   "setupFilesAfterEnv": ["<rootDir>/jest.setup.ts"],
-  "testEnvironment": "jest-environment-jsdom",
+  "testEnvironment": "jsdom",
   "testMatch": [
     "**/__tests__/**/*.ts",
     "**/__tests__/**/*.tsx",

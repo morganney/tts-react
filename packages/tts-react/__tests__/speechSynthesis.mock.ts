@@ -110,7 +110,7 @@ class SpeechSynthesisMock extends EventTarget {
         this.#pending = false
       }
 
-      this.#speak(speakit)
+      await this.#speak(speakit)
     }
   })
 

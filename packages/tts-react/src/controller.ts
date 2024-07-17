@@ -44,7 +44,7 @@ class Controller extends EventTarget {
   #target: Target
   #synthesizer: Synthesizer
   #dispatchBoundaries = true
-  #fetchAudioData: FetchAudioData = async () => ({ audio: '', marks: [] })
+  #fetchAudioData: FetchAudioData = () => Promise.resolve({ audio: '', marks: [] })
   #marks: PollySpeechMark[] = []
   #text = ''
   #lang = ''
@@ -469,7 +469,7 @@ class Controller extends EventTarget {
     }
   }
 
-  mute(): void {
+  async mute() {
     this.volume = 0
 
     /**
@@ -481,11 +481,11 @@ class Controller extends EventTarget {
       !this.paused &&
       this.#synthesizer.speaking
     ) {
-      this.replay()
+      await this.replay()
     }
   }
 
-  unmute(volume?: number): void {
+  async unmute(volume?: number) {
     this.volume = volume ?? 1
 
     /**
@@ -496,7 +496,7 @@ class Controller extends EventTarget {
       !this.paused &&
       this.#synthesizer.speaking
     ) {
-      this.replay()
+      await this.replay()
     }
   }
 }

@@ -184,8 +184,8 @@ const TextToSpeech = ({
 
     return ['play', 'Play', playOrPause]
   }, [state.isPlaying, useStopOverPause, playOrStop, playOrPause])
-  const handleOnMuteClicked = useCallback(() => {
-    toggleMute(onMuteToggled)
+  const handleOnMuteClicked = useCallback(async () => {
+    await toggleMute(onMuteToggled)
   }, [toggleMute, onMuteToggled])
 
   return (

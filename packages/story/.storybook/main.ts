@@ -1,4 +1,5 @@
 import type { StorybookConfig } from '@storybook/react-webpack5'
+import type { TransformOptions } from '@babel/core'
 
 const config: StorybookConfig = {
   stories: ['../src/story.tsx', '../src/count.story.tsx'],
@@ -13,6 +14,9 @@ const config: StorybookConfig = {
   docs: {
     autodocs: 'tag',
   },
+  babel: async (options: TransformOptions) => {
+    return {...options, rootMode: 'upward'}
+  }
 }
 
 export default config

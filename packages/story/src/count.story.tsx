@@ -15,9 +15,13 @@ const CountOnEnd: StoryFn<typeof useTts> = () => {
   })
 
   useEffect(() => {
-    if (counting) {
-      play()
+    const doCount = async () => {
+      if (counting) {
+        await play()
+      }
     }
+
+    void doCount()
   }, [count, counting, play])
 
   return (
@@ -25,10 +29,19 @@ const CountOnEnd: StoryFn<typeof useTts> = () => {
       <p>
         Example counter. Use a timeout in <code>onEnd</code> to control the rate.
       </p>
-      <button disabled={counting} onClick={() => setCounting(true)}>
+      <button
+        disabled={counting}
+        onClick={() => {
+          setCounting(true)
+        }}>
         Start
       </button>
-      <button onClick={() => setCounting(false)}>Stop</button>
+      <button
+        onClick={() => {
+          setCounting(false)
+        }}>
+        Stop
+      </button>
       <p>{ttsChildren}</p>
     </>
   )
