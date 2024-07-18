@@ -72,23 +72,23 @@ describe('TextToSpeech', () => {
     )
 
     // Click play to start firing boundary events and thus inserts marks
-    act(() => {
+    await act(async () => {
       fireEvent.click(getByRole('button', { name: 'Play' }))
-      jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
+      await jest.advanceTimersByTimeAsync(SpeechSynthesisMock.wordBoundaryDelayMs)
     })
     await waitFor(() => expect(getByTestId('tts-react-mark')).toBeInTheDocument())
     expect(getByTestId('tts-react-mark').textContent).toBe(words.shift())
 
-    act(() => {
-      jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(SpeechSynthesisMock.wordBoundaryDelayMs)
     })
     await waitFor(() => expect(getByTestId('tts-react-mark')).toBeInTheDocument())
     expect(getByTestId('tts-react-mark').textContent).toBe(words.shift())
 
     // Finish marking the words in the spoken text
     while (words.length) {
-      act(() => {
-        jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(SpeechSynthesisMock.wordBoundaryDelayMs)
       })
       await waitFor(() => expect(getByTestId('tts-react-mark')).toBeInTheDocument())
       expect(getByTestId('tts-react-mark').textContent).toBe(
@@ -97,14 +97,14 @@ describe('TextToSpeech', () => {
     }
 
     // Wait for the end event to fire and speaking to stop
-    act(() => {
-      jest.advanceTimersByTime(SpeechSynthesisMock.wordBoundaryDelayMs)
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(SpeechSynthesisMock.wordBoundaryDelayMs)
     })
     await waitFor(() => expect(queryByTestId('tts-react-mark')).not.toBeInTheDocument())
     expect(queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument()
   })
 
-  it('supports position and align props', () => {
+  test('supports position and align props', () => {
     const { getByTestId, rerender } = render(
       <TextToSpeech position={Positions.TL}>
         {SpeechSynthesisMock.textForTest}
