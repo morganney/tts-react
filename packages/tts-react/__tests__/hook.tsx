@@ -1,5 +1,5 @@
 import { describe, test, jest, beforeEach } from '@jest/globals'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 
 import { SpeechSynthesisMock } from './speechSynthesis.mock.js'
 import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock.js'
@@ -70,7 +70,7 @@ describe('useTts', () => {
 
     // Start coverting text to speech
     await act(async () => {
-      result.current.play()
+      await result.current.play()
     })
     expect(onStart).toHaveBeenCalled()
     expect(result.current.state.isPlaying).toBe(true)
@@ -115,8 +115,8 @@ describe('useTts', () => {
 
     // Check default state and play
     expect(result.current.state).toStrictEqual(defaultState)
-    act(() => {
-      result.current.play()
+    await act(async () => {
+      await result.current.play()
     })
     expect(result.current.state.isPlaying).toBe(true)
     expect(global.speechSynthesis.speak).toHaveBeenCalled()
@@ -136,7 +136,7 @@ describe('useTts', () => {
 
     // Now resume playing
     await act(async () => {
-      result.current.play()
+      await result.current.play()
     })
     await advanceBy(1)
     expect(global.speechSynthesis.resume).toHaveBeenCalled()
@@ -167,21 +167,21 @@ describe('useTts', () => {
 
     // Now activate mute
     await act(async () => {
-      result.current.toggleMute(onMutedCallback)
+      await result.current.toggleMute(onMutedCallback)
     })
     expect(result.current.state.isMuted).toBe(true)
     expect(onMutedCallback).toHaveBeenCalledWith(false)
 
     // Now activate unmute
     await act(async () => {
-      result.current.toggleMute(onMutedCallback)
+      await result.current.toggleMute(onMutedCallback)
     })
     expect(result.current.state.isMuted).toBe(false)
     expect(onMutedCallback).toHaveBeenLastCalledWith(true)
 
     // Now play
     await act(async () => {
-      result.current.play()
+      await result.current.play()
     })
     expect(global.speechSynthesis.cancel).toHaveBeenCalled()
     expect(global.speechSynthesis.resume).toHaveBeenCalled()
@@ -190,7 +190,7 @@ describe('useTts', () => {
 
     // Now mute while playing against a SpeechSynthesis instance of the backing controller
     await act(async () => {
-      result.current.toggleMute(onMutedCallback)
+      await result.current.toggleMute(onMutedCallback)
     })
     expect(result.current.state.isMuted).toBe(true)
     expect(onMutedCallback).toHaveBeenLastCalledWith(false)
@@ -209,7 +209,7 @@ describe('useTts', () => {
 
     // Now replay
     await act(async () => {
-      result.current.replay()
+      await result.current.replay()
     })
     expect(result.current.state.isPaused).toBe(false)
     expect(global.speechSynthesis.resume).toHaveBeenCalledTimes(3)
@@ -270,7 +270,7 @@ describe('useTts', () => {
     expect(result.current.get.preservesPitch()).toBe(false)
   })
 
-  it('plays on render when using autoPlay', () => {
+  it('plays on render when using autoPlay', async () => {
     const { result } = renderHook(
       ({ children, autoPlay }) => useTts({ children, autoPlay }),
       {
@@ -280,6 +280,8 @@ describe('useTts', () => {
         }
       }
     )
+
+    await waitFor(() => expect(result).not.toBe(null))
 
     expect(result.current.state.isReady).toBe(true)
     expect(result.current.state.isPlaying).toBe(true)
@@ -304,7 +306,7 @@ describe('useTts', () => {
 
     SpeechSynthesisMock.triggerError = true
     await act(async () => {
-      result.current.play()
+      await result.current.play()
     })
     expect(onError).toHaveBeenCalled()
   })

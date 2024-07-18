@@ -1,5 +1,4 @@
-// No umd build for react/jsx-runtime @see https://github.com/facebook/react/issues/20923
-import React, { useMemo, useCallback } from 'react'
+import { useMemo, useCallback } from 'react'
 import type { CSSProperties } from 'react'
 
 import { useTts } from './hook.js'
@@ -185,8 +184,8 @@ const TextToSpeech = ({
 
     return ['play', 'Play', playOrPause]
   }, [state.isPlaying, useStopOverPause, playOrStop, playOrPause])
-  const handleOnMuteClicked = useCallback(() => {
-    toggleMute(onMuteToggled)
+  const handleOnMuteClicked = useCallback(async () => {
+    await toggleMute(onMuteToggled)
   }, [toggleMute, onMuteToggled])
 
   return (

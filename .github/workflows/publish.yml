@@ -23,12 +23,12 @@ jobs:
         with:
           name: npm-debug-log-${{ hashFiles('package-lock.json') }}
           path: npm-debug.log
+      - name: Pack
+        run: npm pack --pack-destination=packages/tts-react --workspace=tts-react
       - name: Lint
         run: npm run lint
       - name: Test
         run: npm test
-      - name: Pack
-        run: npm pack --pack-destination=packages/tts-react --workspace=tts-react
       - name: Push to NPM registry
         uses: JS-DevTools/npm-publish@v3.1.1
         with:

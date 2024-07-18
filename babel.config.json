@@ -7,19 +7,5 @@
     ["@babel/preset-react", {
       "runtime": "automatic"
     }]
-  ],
-  "env": {
-    "dual": {
-      "presets": [
-        ["@babel/preset-env", {
-          "modules": false
-        }]
-      ],
-      "plugins": [
-        ["react-remove-properties", {
-          "properties": ["data-testid"]
-        }]
-      ]
-    }
-  }
+  ]
 }

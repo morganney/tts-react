@@ -1,4 +1,4 @@
-import React, {
+import {
   useRef,
   useMemo,
   useReducer,
@@ -152,16 +152,16 @@ interface TTSHookResponse {
   state: TTSHookState
   /** The text extracted from the children elements and used to synthesize speech. */
   spokenText: string
-  play: () => void
+  play: () => Promise<void>
   stop: () => void
   pause: () => void
-  replay: () => void
+  replay: () => Promise<void>
   /** Toggles between muted/unmuted, i.e. volume is zero or non-zero. */
-  toggleMute: (callback?: (wasMuted: boolean) => void) => void
+  toggleMute: (callback?: (wasMuted: boolean) => void) => Promise<void>
   /** Toggles between play/stop. */
-  playOrStop: () => void
+  playOrStop: () => Promise<void>
   /** Toggles between play/pause. */
-  playOrPause: () => void
+  playOrPause: () => Promise<void>
   /** The original children with a possible <mark> included if using `markTextAsSpoken`. */
   ttsChildren: ReactNode
 }
@@ -187,6 +187,7 @@ const parseChildrenRecursively = ({
     let currentChild = child
 
     if (isValidElement(child)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       currentChild = cloneElement(child, {
         ...child.props,
         children: parseChildrenRecursively({
@@ -195,6 +196,7 @@ const parseChildrenRecursively = ({
           markColor,
           markBackgroundColor,
           markTextAsSpoken,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
           children: child.props.children
         })
       })
@@ -303,7 +305,7 @@ const useTts = ({
 }: TTSHookProps): TTSHookResponse => {
   const spokenTextRef = useRef<string>()
   const [state, dispatch] = useReducer(reducer, {
-    voices: window.speechSynthesis?.getVoices() ?? [],
+    voices: window.speechSynthesis.getVoices() ?? [],
     boundary: defaultBoundary,
     isPlaying: false,
     isPaused: false,
@@ -341,10 +343,10 @@ const useTts = ({
   )
   const play = useCallback(async () => {
     if (state.isPaused) {
-      controller.resume()
+      await controller.resume()
     } else {
       // Replay gives a more consistent/expected experience
-      controller.replay()
+      await controller.replay()
     }
 
     dispatch({ type: 'play' })
@@ -353,8 +355,8 @@ const useTts = ({
     controller.pause()
     dispatch({ type: 'pause' })
   }, [controller])
-  const replay = useCallback(() => {
-    controller.replay()
+  const replay = useCallback(async () => {
+    await controller.replay()
     dispatch({ type: 'reset' })
   }, [controller])
   const stop = useCallback(() => {
@@ -363,14 +365,14 @@ const useTts = ({
     dispatch({ type: 'stop' })
   }, [controller])
   const toggleMuteHandler = useCallback(
-    (callback?: ToggleMuteCallback) => {
+    async (callback?: ToggleMuteCallback) => {
       const wasMuted = parseFloat(controller.volume.toFixed(2)) === controller.volumeMin
 
       if (wasMuted) {
-        controller.unmute()
+        await controller.unmute()
         dispatch({ type: 'unmuted' })
       } else {
-        controller.mute()
+        await controller.mute()
         dispatch({ type: 'muted' })
       }
 
@@ -380,14 +382,20 @@ const useTts = ({
     },
     [controller]
   )
-  const playOrPause = useMemo(
-    () => (state.isPlaying ? pause : play),
-    [state.isPlaying, pause, play]
-  )
-  const playOrStop = useMemo(
-    () => (state.isPlaying ? stop : play),
-    [state.isPlaying, stop, play]
-  )
+  const playOrPause = useCallback(async () => {
+    if (state.isPlaying) {
+      pause()
+    } else {
+      await play()
+    }
+  }, [state.isPlaying, pause, play])
+  const playOrStop = useCallback(async () => {
+    if (state.isPlaying) {
+      stop()
+    } else {
+      await play()
+    }
+  }, [state.isPlaying, stop, play])
   const [get, set] = useMemo(
     () => [
       {
@@ -548,7 +556,12 @@ const useTts = ({
       await controller.init()
     }
 
-    initializeListeners()
+    initializeListeners().catch((err) => {
+      if (err instanceof Error) {
+        // eslint-disable-next-line no-console
+        console.error(err.message)
+      }
+    })
 
     return () => {
       window.removeEventListener('beforeunload', onBeforeUnload)
@@ -577,10 +590,19 @@ const useTts = ({
   ])
 
   useEffect(() => {
-    if (autoPlay && state.isReady) {
-      controller.replay()
-      dispatch({ type: 'play' })
+    const handleAutoPlay = async () => {
+      if (autoPlay && state.isReady) {
+        await controller.replay()
+        dispatch({ type: 'play' })
+      }
     }
+
+    handleAutoPlay().catch((err) => {
+      if (err instanceof Error) {
+        // eslint-disable-next-line no-console
+        console.error(`Unable to auto play: ${err.message}`)
+      }
+    })
   }, [autoPlay, controller, state.isReady, spokenText])
 
   useEffect(() => {
@@ -588,12 +610,12 @@ const useTts = ({
       dispatch({ type: 'voices', payload: window.speechSynthesis.getVoices() })
     }
 
-    if (typeof window.speechSynthesis?.addEventListener === 'function') {
+    if (typeof window.speechSynthesis.addEventListener === 'function') {
       window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged)
     }
 
     return () => {
-      if (typeof window.speechSynthesis?.removeEventListener === 'function') {
+      if (typeof window.speechSynthesis.removeEventListener === 'function') {
         window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
       }
     }

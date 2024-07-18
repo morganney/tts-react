@@ -27,6 +27,8 @@ jobs:
         with:
           name: npm-debug-log-${{ hashFiles('package-lock.json') }}
           path: npm-debug.log
+      - name: Pack
+        run: npm pack --pack-destination=packages/tts-react --workspace=tts-react
       - name: Lint
         run: npm run lint
       - name: Test
@@ -35,7 +37,5 @@ jobs:
         uses: codecov/codecov-action@v4.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Pack
-        run: npm pack --pack-destination=packages/tts-react --workspace=tts-react
       - name: Build Story
         run: npm run build:story

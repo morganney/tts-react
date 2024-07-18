@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react'
+import { useMemo, useEffect } from 'react'
 import type { MouseEventHandler, CSSProperties } from 'react'
 
 import { Sizes, icons, iconSizes } from './icons.js'
