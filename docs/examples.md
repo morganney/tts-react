@@ -28,7 +28,7 @@ Using `tts-react` with ESM from a CDN:
 
 #### `htm`
 
-Use [`htm`](https://github.com/developit/htm) for JSX-link syntax:
+Use [`htm`](https://github.com/developit/htm) for JSX-like syntax:
 
 ```html
 <!doctype html>
