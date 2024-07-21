@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, createElement, Fragment } from 'react'
 import type { CSSProperties } from 'react'
 
 interface HighliterProps {
@@ -27,32 +27,32 @@ const Highlighter = ({ text, mark, color, backgroundColor }: HighliterProps) => 
     const parts = textStr.split(regex)
 
     if (parts.length > 1) {
-      return (
-        <span>
-          {parts.map((part, idx) => {
-            const key = `${part}-${idx}`
+      return createElement(
+        'span',
+        null,
+        ...parts.map((part, idx) => {
+          const key = `${part}-${idx}`
 
-            if (!part) {
-              // Happens when the entire text matches the mark
-              return null
-            }
+          if (!part) {
+            // Happens when the entire text matches the mark
+            return null
+          }
 
-            if (regex.test(part)) {
-              return (
-                <mark key={key} style={markStyle} data-testid="tts-react-mark">
-                  {part}
-                </mark>
-              )
-            }
+          if (regex.test(part)) {
+            return createElement(
+              'mark',
+              { key, style: markStyle, 'data-testid': 'tts-react-mark' },
+              part
+            )
+          }
 
-            return <span key={key}>{part}</span>
-          })}
-        </span>
+          return createElement('span', { key }, part)
+        })
       )
     }
   }
 
-  return <>{text}</>
+  return createElement(Fragment, null, text)
 }
 
 export { Highlighter }
