@@ -1,56 +1,11 @@
 # Examples
 
-### UMD
-
-Using `tts-react` from a CDN:
-
-```html
-<!DOCTYPE html>
-<html lang="en-US">
-  <head>
-    <title>tts-react UMD example</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/tts-react@3.0.0/dist/umd/tts-react.min.js"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="text/babel">
-      const root = ReactDOM.createRoot(document.getElementById('root'))
-      const { TextToSpeech, useTts } = TTSReact
-      const CustomTTS = ({ children }) => {
-        const { play, ttsChildren } = useTts({ children })
-
-        return (
-          <>
-            <button onClick={() => play()}>Play</button>
-            <div>{ttsChildren}</div>
-          </>
-        )
-      }
-
-      root.render(
-        <>
-          <CustomTTS>
-            <p><code>useTts</code> as a UMD module.</p>
-          </CustomTTS>
-          <TextToSpeech markTextAsSpoken>
-            <p><code>TextToSpeech</code> as a UMD module.</p>
-          </TextToSpeech>
-        </>
-      )
-    </script>
-  </body>
-</html>
-```
-
 ### Import Map
 
-Uses [htm](https://github.com/developit/htm) and [import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap):
+Using `tts-react` with ESM from a CDN and [import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap):
 
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -58,28 +13,23 @@ Uses [htm](https://github.com/developit/htm) and [import maps](https://developer
     <script type="importmap">
       {
         "imports": {
-          "react": "https://esm.sh/react",
-          "react-dom/": "https://esm.sh/react-dom/",
-          "tts-react": "https://esm.sh/tts-react",
-          "htm/": "https://esm.sh/htm/"
+          "react": "https://esm.sh/react@rc",
+          "react-dom/": "https://esm.sh/react-dom@rc/",
+          "react/jsx-runtime": "https://esm.sh/react@rc/jsx-runtime",
+          "tts-react": "https://esm.sh/tts-react@next"
         }
       }
     </script>
-    <title>Import Map (no build): tts-react</title>
+    <title>ESM / CDN / Import Map</title>
   </head>
   <body>
-    <div id="root"></div>
     <script type="module">
+      import { createElement } from 'react'
       import { createRoot } from 'react-dom/client'
       import { TextToSpeech } from 'tts-react'
-      import { html } from 'htm/react'
 
-      createRoot(document.getElementById('root')).render(
-        html`
-          <${TextToSpeech} markTextAsSpoken>
-            <p>Hello from tts-react.</p>
-          </${TextToSpeech}>
-        `
+      createRoot(document.body).render(
+        createElement(TextToSpeech, { markTextAsSpoken: true }, 'Hello from tts-react.')
       )
     </script>
   </body>
@@ -90,7 +40,7 @@ Uses [htm](https://github.com/developit/htm) and [import maps](https://developer
 
 Counting on command:
 
-```tsx
+```jsx
 import { useState, useCallback, useEffect } from 'react'
 import { useTts } from 'tts-react'
 

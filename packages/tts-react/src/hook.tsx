@@ -6,7 +6,9 @@ import {
   useEffect,
   Children,
   cloneElement,
-  isValidElement
+  createElement,
+  isValidElement,
+  Fragment
 } from 'react'
 import type { ReactNode } from 'react'
 
@@ -217,18 +219,21 @@ const parseChildrenRecursively = ({
         const after = text.substring(end, text.length)
 
         if (found) {
-          return (
-            <>
-              {prev}
-              <Highlighter
-                text={found}
-                mark={stripPunctuation(found)}
-                color={markColor}
-                backgroundColor={markBackgroundColor}
-              />
-              {after}
-            </>
+          const Highlight = createElement(Highlighter, {
+            text: found,
+            mark: stripPunctuation(found),
+            color: markColor,
+            backgroundColor: markBackgroundColor
+          })
+          const Highlighted = createElement(
+            Fragment,
+            { key: `tts-${start}-${end}` },
+            prev,
+            Highlight,
+            after
           )
+
+          return Highlighted
         }
       }
     }
