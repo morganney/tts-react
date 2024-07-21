@@ -20,6 +20,39 @@ By default `tts-react` uses the [`SpeechSynthesis`](https://developer.mozilla.or
 
 ## Example
 
+#### ESM + CDN
+
+Get up and running quickly using `tts-react` with ESM from a CDN. This example uses [React 19](https://react.dev/blog/2024/04/25/react-19) with [`htm`](https://github.com/developit/htm):
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ESM + CDN + htm</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createElement } from 'https://esm.sh/react@rc/?dev'
+      import { createRoot } from 'https://esm.sh/react-dom@rc/client?dev'
+      import { TextToSpeech } from 'https://esm.sh/tts-react@next?deps=react@rc&dev'
+      import htm from 'https://esm.sh/htm'
+
+      const html = htm.bind(createElement)
+
+      createRoot(document.body).render(
+        html`
+          <${TextToSpeech} markTextAsSpoken>
+            <p>Hello from tts-react.</p>
+          </${TextToSpeech}>
+        `
+      )
+    </script>
+  </body>
+</html>
+```
+
 #### Hook
 
 You can use the hook to create a `Speak` component that converts the text to speech on render:
@@ -62,8 +95,12 @@ const CustomTTSComponent = ({ children, highlight = false }: CustomProps) => {
   return (
     <div>
       <>
-        <button disabled={state.isPlaying} onClick={play}>Play</button>
-        <button disabled={!state.isPlaying} onClick={pause}>Pause</button>
+        <button disabled={state.isPlaying} onClick={play}>
+          Play
+        </button>
+        <button disabled={!state.isPlaying} onClick={pause}>
+          Pause
+        </button>
         <button onClick={stop}>Stop</button>
       </>
       {ttsChildren}
@@ -82,7 +119,7 @@ const App = () => {
 
 #### Component
 
-Use the `TextToSpeech` component to get up and running quickly:
+Use the `TextToSpeech` component for an out of the box solution:
 
 ```tsx
 import { TextToSpeech, Positions, Sizes } from 'tts-react'
@@ -224,7 +261,7 @@ interface TTSBoundaryUpdate {
 Using `fetchAudioData` will bypass `SpeechSynthesis` and use the `HTMLAudioElement`.
 
 ```ts
-(spokenText: string) => Promise<TTSAudioData>
+;(spokenText: string) => Promise<TTSAudioData>
 ```
 
 When using `fetchAudioData` it must return `TTSAudioData` which has the following shape:
@@ -242,8 +279,8 @@ interface TTSAudioData {
   marks?: PollySpeechMark[]
 }
 ```
-The `audio` property must be a URL that can be applied to [`HTMLAudioElement.src`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#attr-src), including a [data URL](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs). If using `markTextAsSpoken` then you must also return the `marks` that describe the word boundaries. `PollySpeechMarks` have the same shape as the [Speech Marks used by Amazon Polly](https://docs.aws.amazon.com/polly/latest/dg/speechmarks.html), with the restriction that they must be of `type: 'word'`.
 
+The `audio` property must be a URL that can be applied to [`HTMLAudioElement.src`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#attr-src), including a [data URL](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs). If using `markTextAsSpoken` then you must also return the `marks` that describe the word boundaries. `PollySpeechMarks` have the same shape as the [Speech Marks used by Amazon Polly](https://docs.aws.amazon.com/polly/latest/dg/speechmarks.html), with the restriction that they must be of `type: 'word'`.
 
 ## Props
 
@@ -251,31 +288,30 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 
 <sub>`*` Only applies to `TextToSpeech` component.</sub>
 
-|Name|Required|Type|Default|Description|
-|----|--------|----|-------|-----------|
-|children|yes|`ReactNode`|none|Provides the text that will be spoken.|
-|lang|no|`string`|The one used by [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang).|Sets the [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang). Overrides `voice` when set and `voice.lang` does not match `lang`.|
-|voice|no|`SpeechSynthesisVoice`|None or the voice provided by `audio` from `TTSAudioData`.|The voice heard when the text is spoken. Calling `set.lang` may override this value.|
-|autoPlay|no|`boolean`|`false`|Whether the audio of the text should automatically be spoken when ready.|
-|markTextAsSpoken|no|`boolean`|`false`|Whether the word being spoken should be highlighted.|
-|markColor|no|`string`|none|Color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
-|markBackgroundColor|no|`string`|none|Background color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.|
-|fetchAudioData|no|`(text: string) => Promise<TTSAudioData>`|none|Function to return the optional `SpeechMarks[]` and `audio` URL for the text to be spoken. See [fetchAudioData](#fetchaudiodata) for more details.|
-|<sup>`*`</sup>allowMuting|no|`boolean`|`true`|Whether an additional button will be shown on the component that allows muting the audio.|
-|<sup>`*`</sup>onMuteToggled|no|`(wasMuted: boolean) => void`|none|Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.|
-|onStart|no|`(evt: SpeechSynthesisEvent \| Event) => void`|none|Callback when the speaking/audio has started (or resumed) playing.|
-|onPause|no|`(evt: SpeechSynthesisEvent \| Event) => void`|none|Callback when the speaking/audio has been paused.|
-|onEnd|no|`(evt: SpeechSynthesisEvent \| Event) => void`|none|Callback when the speaking/audio has stopped.|
-|onBoundary|no|`(boundary: TTSBoundaryUpdate, evt: SpeechSynthesisEvent \| Event) => void`|none|Callback when a word boundary/mark has been reached.|
-|onError|no|`(msg: string) => void`|none|Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided.|
-|onVolumeChange|no|`(newVolume: number) => void`|none|Callback when the volume has changed.|
-|onRateChange|no|`(newRate: number) => void`|none|Callback when the rate has changed.|
-|onPitchChange|no|`(newPitch: number) => void`|none|Callback when the pitch has changed.|
-|<sup>`*`</sup>align|no|`'horizontal' \| 'vertical'`|`'horizontal'`|How to align the controls within the `TextToSpeech` component.|
-|<sup>`*`</sup>size|no|`'small' \| 'medium' \| 'large'`|`'medium'`|The relative size of the controls within the `TextToSpeech` component.|
-|<sup>`*`</sup>position|no|`'topRight' \| 'topLeft' \| 'bottomRight' \| 'bottomLeft'`|`'topRight'`|The relative positioning of the controls within the `TextToSpeech` component.|
-|<sup>`*`</sup>useStopOverPause|no|`boolean`|`false`|Whether the controls should display a stop button instead of a pause button. On Android devices, `SpeechSynthesis.pause()` behaves like `cancel()`, so you can use this prop in that context.|
-
+| Name                           | Required | Type                                                                        | Default                                                                                                                            | Description                                                                                                                                                                                    |
+| ------------------------------ | -------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| children                       | yes      | `ReactNode`                                                                 | none                                                                                                                               | Provides the text that will be spoken.                                                                                                                                                         |
+| lang                           | no       | `string`                                                                    | The one used by [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang). | Sets the [`SpeechSynthesisUtterance.lang`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance/lang). Overrides `voice` when set and `voice.lang` does not match `lang`. |
+| voice                          | no       | `SpeechSynthesisVoice`                                                      | None or the voice provided by `audio` from `TTSAudioData`.                                                                         | The voice heard when the text is spoken. Calling `set.lang` may override this value.                                                                                                           |
+| autoPlay                       | no       | `boolean`                                                                   | `false`                                                                                                                            | Whether the audio of the text should automatically be spoken when ready.                                                                                                                       |
+| markTextAsSpoken               | no       | `boolean`                                                                   | `false`                                                                                                                            | Whether the word being spoken should be highlighted.                                                                                                                                           |
+| markColor                      | no       | `string`                                                                    | none                                                                                                                               | Color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.                                                                                                        |
+| markBackgroundColor            | no       | `string`                                                                    | none                                                                                                                               | Background color of the text that is currently being spoken. Only applies with `markTextAsSpoken`.                                                                                             |
+| fetchAudioData                 | no       | `(text: string) => Promise<TTSAudioData>`                                   | none                                                                                                                               | Function to return the optional `SpeechMarks[]` and `audio` URL for the text to be spoken. See [fetchAudioData](#fetchaudiodata) for more details.                                             |
+| <sup>`*`</sup>allowMuting      | no       | `boolean`                                                                   | `true`                                                                                                                             | Whether an additional button will be shown on the component that allows muting the audio.                                                                                                      |
+| <sup>`*`</sup>onMuteToggled    | no       | `(wasMuted: boolean) => void`                                               | none                                                                                                                               | Callback when the user clicks the mute button shown from `allowMuting` being enabled. Can be used to toggle global or local state like whether `autoPlay` should be enabled.                   |
+| onStart                        | no       | `(evt: SpeechSynthesisEvent \| Event) => void`                              | none                                                                                                                               | Callback when the speaking/audio has started (or resumed) playing.                                                                                                                             |
+| onPause                        | no       | `(evt: SpeechSynthesisEvent \| Event) => void`                              | none                                                                                                                               | Callback when the speaking/audio has been paused.                                                                                                                                              |
+| onEnd                          | no       | `(evt: SpeechSynthesisEvent \| Event) => void`                              | none                                                                                                                               | Callback when the speaking/audio has stopped.                                                                                                                                                  |
+| onBoundary                     | no       | `(boundary: TTSBoundaryUpdate, evt: SpeechSynthesisEvent \| Event) => void` | none                                                                                                                               | Callback when a word boundary/mark has been reached.                                                                                                                                           |
+| onError                        | no       | `(msg: string) => void`                                                     | none                                                                                                                               | Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided.                                                                              |
+| onVolumeChange                 | no       | `(newVolume: number) => void`                                               | none                                                                                                                               | Callback when the volume has changed.                                                                                                                                                          |
+| onRateChange                   | no       | `(newRate: number) => void`                                                 | none                                                                                                                               | Callback when the rate has changed.                                                                                                                                                            |
+| onPitchChange                  | no       | `(newPitch: number) => void`                                                | none                                                                                                                               | Callback when the pitch has changed.                                                                                                                                                           |
+| <sup>`*`</sup>align            | no       | `'horizontal' \| 'vertical'`                                                | `'horizontal'`                                                                                                                     | How to align the controls within the `TextToSpeech` component.                                                                                                                                 |
+| <sup>`*`</sup>size             | no       | `'small' \| 'medium' \| 'large'`                                            | `'medium'`                                                                                                                         | The relative size of the controls within the `TextToSpeech` component.                                                                                                                         |
+| <sup>`*`</sup>position         | no       | `'topRight' \| 'topLeft' \| 'bottomRight' \| 'bottomLeft'`                  | `'topRight'`                                                                                                                       | The relative positioning of the controls within the `TextToSpeech` component.                                                                                                                  |
+| <sup>`*`</sup>useStopOverPause | no       | `boolean`                                                                   | `false`                                                                                                                            | Whether the controls should display a stop button instead of a pause button. On Android devices, `SpeechSynthesis.pause()` behaves like `cancel()`, so you can use this prop in that context.  |
 
 ## FAQ
 

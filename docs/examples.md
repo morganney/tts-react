@@ -1,8 +1,67 @@
 # Examples
 
-### Import Map
+### CDN + ESM
 
-Using `tts-react` with ESM from a CDN and [import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap):
+Using `tts-react` with ESM from a CDN:
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ESM + CDN</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createElement } from 'https://esm.sh/react@rc/?dev'
+      import { createRoot } from 'https://esm.sh/react-dom@rc/client?dev'
+      import { TextToSpeech } from 'https://esm.sh/tts-react@next?deps=react@rc&dev'
+
+      createRoot(document.body).render(
+        createElement(TextToSpeech, { markTextAsSpoken: true }, 'Hello from tts-react.')
+      )
+    </script>
+  </body>
+</html>
+```
+
+#### `htm`
+
+Use [`htm`](https://github.com/developit/htm) for JSX-like syntax:
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ESM + CDN + htm</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createElement } from 'https://esm.sh/react@rc/?dev'
+      import { createRoot } from 'https://esm.sh/react-dom@rc/client?dev'
+      import { TextToSpeech } from 'https://esm.sh/tts-react@next?deps=react@rc&dev'
+      import htm from 'https://esm.sh/htm'
+
+      const html = htm.bind(createElement)
+
+      createRoot(document.body).render(
+        html`
+          <${TextToSpeech} markTextAsSpoken>
+            <p>Hello from tts-react.</p>
+          </${TextToSpeech}>
+        `
+      )
+    </script>
+  </body>
+</html>
+```
+
+#### Import Map
+
+You can also use an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) if you prefer bare specifiers in your import statements:
 
 ```html
 <!doctype html>
@@ -13,23 +72,30 @@ Using `tts-react` with ESM from a CDN and [import maps](https://developer.mozill
     <script type="importmap">
       {
         "imports": {
-          "react": "https://esm.sh/react@rc",
-          "react-dom/": "https://esm.sh/react-dom@rc/",
-          "react/jsx-runtime": "https://esm.sh/react@rc/jsx-runtime",
-          "tts-react": "https://esm.sh/tts-react@next"
+          "react": "https://esm.sh/react@rc/?dev",
+          "react-dom/client": "https://esm.sh/react-dom@rc/client?dev",
+          "tts-react": "https://esm.sh/tts-react@next?deps=react@rc&dev",
+          "htm": "https://esm.sh/htm"
         }
       }
     </script>
-    <title>ESM / CDN / Import Map</title>
+    <title>ESM + CDN + Import Map + htm</title>
   </head>
   <body>
     <script type="module">
       import { createElement } from 'react'
       import { createRoot } from 'react-dom/client'
       import { TextToSpeech } from 'tts-react'
+      import htm from 'htm'
+
+      const html = htm.bind(createElement)
 
       createRoot(document.body).render(
-        createElement(TextToSpeech, { markTextAsSpoken: true }, 'Hello from tts-react.')
+        html`
+          <${TextToSpeech} markTextAsSpoken>
+            <p>Hello from tts-react.</p>
+          </${TextToSpeech}>
+        `
       )
     </script>
   </body>
