@@ -310,7 +310,7 @@ const useTts = ({
 }: TTSHookProps): TTSHookResponse => {
   const spokenTextRef = useRef<string>()
   const [state, dispatch] = useReducer(reducer, {
-    voices: window.speechSynthesis.getVoices() ?? [],
+    voices: typeof window === "undefined" ? [] : window.speechSynthesis.getVoices() ?? [],
     boundary: defaultBoundary,
     isPlaying: false,
     isPaused: false,
@@ -556,7 +556,7 @@ const useTts = ({
       controller.addEventListener(Events.VOLUME, onVolume as EventListener)
       controller.addEventListener(Events.PITCH, onPitch as EventListener)
       controller.addEventListener(Events.RATE, onRate as EventListener)
-      window.addEventListener('beforeunload', onBeforeUnload)
+      if (typeof window !== "undefined") window.addEventListener('beforeunload', onBeforeUnload)
 
       await controller.init()
     }
@@ -569,7 +569,7 @@ const useTts = ({
     })
 
     return () => {
-      window.removeEventListener('beforeunload', onBeforeUnload)
+      if (typeof window !== "undefined") window.removeEventListener('beforeunload', onBeforeUnload)
       controller.removeEventListener(Events.PLAYING, onStartHandler as EventListener)
       controller.removeEventListener(Events.PAUSED, onPauseHandler as EventListener)
       controller.removeEventListener(Events.END, onEndHandler as EventListener)
@@ -612,15 +612,15 @@ const useTts = ({
 
   useEffect(() => {
     const onVoicesChanged = () => {
-      dispatch({ type: 'voices', payload: window.speechSynthesis.getVoices() })
+      dispatch({ type: 'voices', payload: typeof window === "undefined" ? [] : window.speechSynthesis.getVoices() })
     }
 
-    if (typeof window.speechSynthesis.addEventListener === 'function') {
+    if (typeof window !== "undefined" && typeof window.speechSynthesis.addEventListener === 'function') {
       window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged)
     }
 
     return () => {
-      if (typeof window.speechSynthesis.removeEventListener === 'function') {
+      if (typeof window !== "undefined" && typeof window.speechSynthesis.removeEventListener === 'function') {
         window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
       }
     }
