@@ -94,7 +94,7 @@ class SpeechSynthesisMock extends EventTarget {
     }
   }
 
-  speak = jest.fn<void, [SpeechSynthesisUtterance]>(async (utterance) => {
+  speak = jest.fn<Promise<void>, [SpeechSynthesisUtterance]>(async (utterance) => {
     const words = SpeechSynthesisMock.getWords(utterance.text)
     const current = { utterance, words }
 
@@ -125,7 +125,7 @@ class SpeechSynthesisMock extends EventTarget {
     }
   })
 
-  resume = jest.fn<void, []>(() => {
+  resume = jest.fn<Promise<void>, []>(async () => {
     if (this.#paused) {
       this.#paused = false
 
@@ -133,7 +133,7 @@ class SpeechSynthesisMock extends EventTarget {
         const entry = this.#utterances.shift()
 
         if (entry) {
-          this.speak(entry.utterance)
+          await this.speak(entry.utterance)
         }
       }
     }
