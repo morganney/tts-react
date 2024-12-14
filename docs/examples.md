@@ -14,9 +14,9 @@ Using `tts-react` with ESM from a CDN:
   </head>
   <body>
     <script type="module">
-      import { createElement } from 'https://esm.sh/react@rc/?dev'
-      import { createRoot } from 'https://esm.sh/react-dom@rc/client?dev'
-      import { TextToSpeech } from 'https://esm.sh/tts-react@next?deps=react@rc&dev'
+      import { createElement } from 'https://esm.sh/react'
+      import { createRoot } from 'https://esm.sh/react-dom/client'
+      import { TextToSpeech } from 'https://esm.sh/tts-react'
 
       createRoot(document.body).render(
         createElement(TextToSpeech, { markTextAsSpoken: true }, 'Hello from tts-react.')
@@ -40,9 +40,9 @@ Use [`htm`](https://github.com/developit/htm) for JSX-like syntax:
   </head>
   <body>
     <script type="module">
-      import { createElement } from 'https://esm.sh/react@rc/?dev'
-      import { createRoot } from 'https://esm.sh/react-dom@rc/client?dev'
-      import { TextToSpeech } from 'https://esm.sh/tts-react@next?deps=react@rc&dev'
+      import { createElement } from 'https://esm.sh/react'
+      import { createRoot } from 'https://esm.sh/react-dom/client'
+      import { TextToSpeech } from 'https://esm.sh/tts-react'
       import htm from 'https://esm.sh/htm'
 
       const html = htm.bind(createElement)
@@ -72,9 +72,9 @@ You can also use an [import map](https://developer.mozilla.org/en-US/docs/Web/HT
     <script type="importmap">
       {
         "imports": {
-          "react": "https://esm.sh/react@rc/?dev",
-          "react-dom/client": "https://esm.sh/react-dom@rc/client?dev",
-          "tts-react": "https://esm.sh/tts-react@next?deps=react@rc&dev",
+          "react": "https://esm.sh/react",
+          "react-dom/client": "https://esm.sh/react-dom/client",
+          "tts-react": "https://esm.sh/tts-react",
           "htm": "https://esm.sh/htm"
         }
       }

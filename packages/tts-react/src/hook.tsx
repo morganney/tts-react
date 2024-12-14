@@ -177,6 +177,8 @@ interface ParseChildrenProps extends MarkStyles {
   markTextAsSpoken: boolean
 }
 
+const isObjectReactNode = (value: unknown): value is Record<string, ReactNode> =>
+  typeof value === 'object' && value !== null
 const parseChildrenRecursively = ({
   children,
   buffer,
@@ -189,17 +191,18 @@ const parseChildrenRecursively = ({
     let currentChild = child
 
     if (isValidElement(child)) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      const childProps = isObjectReactNode(child.props) ? child.props : {}
+
       currentChild = cloneElement(child, {
-        ...child.props,
+        ...childProps,
+        // @ts-expect-error - `children` is not a valid prop for ReactElement
         children: parseChildrenRecursively({
           buffer,
           boundary,
           markColor,
           markBackgroundColor,
           markTextAsSpoken,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-          children: child.props.children
+          children: childProps.children
         })
       })
     }
@@ -308,7 +311,7 @@ const useTts = ({
   autoPlay = false,
   markTextAsSpoken = false
 }: TTSHookProps): TTSHookResponse => {
-  const spokenTextRef = useRef<string>()
+  const spokenTextRef = useRef<string>(undefined)
   const [state, dispatch] = useReducer(reducer, {
     voices: window.speechSynthesis.getVoices() ?? [],
     boundary: defaultBoundary,

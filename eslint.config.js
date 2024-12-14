@@ -2,10 +2,6 @@ import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
-/**
- * Lack of support for eslint@9 is why this package is still on eslint 8.
- * @see https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/issues/978
- */
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import globals from 'globals'
 
