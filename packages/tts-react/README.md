@@ -12,7 +12,15 @@ By default `tts-react` uses the [`SpeechSynthesis`](https://developer.mozilla.or
 
 ## Install
 
-`npm i react react-dom tts-react`
+```console
+npm i react react-dom tts-react
+```
+
+For projects using React 18:
+
+```console
+npm i react@18 react-dom@18 tts-react@3
+```
 
 ## Demo (Storybook)
 
@@ -34,9 +42,9 @@ Get up and running quickly using `tts-react` with ESM from a CDN. This example u
   </head>
   <body>
     <script type="module">
-      import { createElement } from 'https://esm.sh/react@rc/?dev'
-      import { createRoot } from 'https://esm.sh/react-dom@rc/client?dev'
-      import { TextToSpeech } from 'https://esm.sh/tts-react@next?deps=react@rc&dev'
+      import { createElement } from 'https://esm.sh/react'
+      import { createRoot } from 'https://esm.sh/react-dom/client'
+      import { TextToSpeech } from 'https://esm.sh/tts-react'
       import htm from 'https://esm.sh/htm'
 
       const html = htm.bind(createElement)
