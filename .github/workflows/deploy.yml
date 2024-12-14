@@ -17,15 +17,15 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.2.2
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4.1.0
         with:
-          node-version: '20.11.1'
+          node-version: '20.18.1'
       - name: Install Dependencies
         run: npm ci
       - name: Save error log
-        uses: actions/upload-artifact@v4.3.0
+        uses: actions/upload-artifact@v4.4.3
         if: ${{ failure() }}
         with:
           name: npm-debug-log-${{ hashFiles('package-lock.json') }}
@@ -33,7 +33,7 @@ jobs:
       - name: Build
         run: npm run build:story
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        uses: JamesIves/github-pages-deploy-action@v4.7.2
         with:
           branch: gh-pages
           folder: packages/story/build

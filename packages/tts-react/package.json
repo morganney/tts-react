@@ -38,8 +38,8 @@
     "url": "https://github.com/morganney/tts-react/issues"
   },
   "engines": {
-    "node": ">=22.12.0",
-    "npm": ">=10.9.0"
+    "node": ">=20.18.1",
+    "npm": ">=10.8.2"
   },
   "keywords": [
     "text-to-speech",
