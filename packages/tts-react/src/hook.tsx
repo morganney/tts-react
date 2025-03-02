@@ -105,6 +105,8 @@ interface TTSHookProps extends MarkStyles {
   onBoundary?: TTSBoundaryHandler
   /** Calback when the current utterance/audio has ended. */
   onEnd?: TTSEventHandler
+  /** Callback when the utterance/synthesis is not supported. */
+  onNotSupported?: TTSErrorHandler
   /** Function to fetch audio and speech marks for the spoken text. */
   fetchAudioData?: ControllerOptions['fetchAudioData']
 }
@@ -166,6 +168,8 @@ interface TTSHookResponse {
   playOrPause: () => Promise<void>
   /** The original children with a possible <mark> included if using `markTextAsSpoken`. */
   ttsChildren: ReactNode
+  /** Whether the current browser supports speech synthesis. */
+  isBrowserSupportsSpeechSynthesis: boolean
 }
 interface TextBuffer {
   text: string
@@ -304,6 +308,7 @@ const useTts = ({
   onBoundary,
   onEnd,
   onError,
+  onNotSupported,
   onVolumeChange,
   onPitchChange,
   onRateChange,
@@ -311,15 +316,22 @@ const useTts = ({
   autoPlay = false,
   markTextAsSpoken = false
 }: TTSHookProps): TTSHookResponse => {
-  const spokenTextRef = useRef<string>(undefined)
+  const isBrowserSupportsSpeechSynthesis = useMemo(() => {
+    return (
+      typeof window !== 'undefined' &&
+      'speechSynthesis' in window &&
+      'SpeechSynthesisUtterance' in window
+    )
+  }, [])
+  const spokenTextRef = useRef<string | undefined>(undefined)
   const [state, dispatch] = useReducer(reducer, {
-    voices: window.speechSynthesis.getVoices() ?? [],
+    voices: isBrowserSupportsSpeechSynthesis ? window.speechSynthesis.getVoices() : [],
     boundary: defaultBoundary,
     isPlaying: false,
     isPaused: false,
     isMuted: false,
     isError: false,
-    isReady: typeof fetchAudioData === 'undefined'
+    isReady: isBrowserSupportsSpeechSynthesis && typeof fetchAudioData === 'undefined'
   })
   const [ttsChildren, spokenText] = useMemo(() => {
     if (typeof spokenTextRef.current === 'undefined' || markTextAsSpoken) {
@@ -340,55 +352,83 @@ const useTts = ({
 
     return [children, spokenTextRef.current]
   }, [children, state.boundary, markColor, markBackgroundColor, markTextAsSpoken])
-  const controller = useMemo(
-    () =>
-      new Controller({
-        lang,
-        voice,
-        fetchAudioData
-      }),
-    [lang, voice, fetchAudioData]
-  )
-  const play = useCallback(async () => {
-    if (state.isPaused) {
-      await controller.resume()
-    } else {
-      // Replay gives a more consistent/expected experience
-      await controller.replay()
+  const controller = useMemo(() => {
+    if (!isBrowserSupportsSpeechSynthesis) return null
+
+    return new Controller({
+      lang,
+      voice,
+      fetchAudioData
+    })
+  }, [isBrowserSupportsSpeechSynthesis, lang, voice, fetchAudioData])
+  const fallback = useCallback(() => {
+    if (!isBrowserSupportsSpeechSynthesis) {
+      if (onNotSupported) {
+        onNotSupported('Web Speech API is not supported.')
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn('Web Speech API is not supported.')
+      }
     }
-
+  }, [isBrowserSupportsSpeechSynthesis, onNotSupported])
+  const play = useCallback(async () => {
+    if (controller) {
+      if (state.isPaused) {
+        await controller.resume()
+      } else {
+        // Replay gives a more consistent/expected experience
+        await controller.replay()
+      }
+    } else {
+      fallback()
+    }
     dispatch({ type: 'play' })
-  }, [controller, state.isPaused])
+  }, [controller, fallback, state.isPaused])
   const pause = useCallback(() => {
-    controller.pause()
+    if (controller) {
+      controller.pause()
+    } else {
+      fallback()
+    }
     dispatch({ type: 'pause' })
-  }, [controller])
+  }, [controller, fallback])
   const replay = useCallback(async () => {
-    await controller.replay()
+    if (controller) {
+      await controller.replay()
+    } else {
+      fallback()
+    }
     dispatch({ type: 'reset' })
-  }, [controller])
+  }, [controller, fallback])
   const stop = useCallback(() => {
-    controller.cancel()
-
+    if (controller) {
+      controller.cancel()
+    } else {
+      fallback()
+    }
     dispatch({ type: 'stop' })
-  }, [controller])
+  }, [controller, fallback])
   const toggleMuteHandler = useCallback(
     async (callback?: ToggleMuteCallback) => {
-      const wasMuted = parseFloat(controller.volume.toFixed(2)) === controller.volumeMin
+      if (controller) {
+        const wasMuted = parseFloat(controller.volume.toFixed(2)) === controller.volumeMin
 
-      if (wasMuted) {
-        await controller.unmute()
-        dispatch({ type: 'unmuted' })
+        if (wasMuted) {
+          await controller.unmute()
+          dispatch({ type: 'unmuted' })
+        } else {
+          await controller.mute()
+          dispatch({ type: 'muted' })
+        }
+
+        if (typeof callback === 'function') {
+          callback(wasMuted)
+        }
       } else {
-        await controller.mute()
-        dispatch({ type: 'muted' })
-      }
-
-      if (typeof callback === 'function') {
-        callback(wasMuted)
+        fallback()
       }
     },
-    [controller]
+    [controller, fallback]
   )
   const playOrPause = useCallback(async () => {
     if (state.isPlaying) {
@@ -408,36 +448,46 @@ const useTts = ({
     () => [
       {
         lang() {
-          return controller.lang
+          return controller?.lang || ''
         },
         rate() {
-          return controller.rate
+          return controller?.rate || 1
         },
         pitch() {
-          return controller.pitch
+          return controller?.pitch || 1
         },
         volume() {
-          return controller.volume
+          return controller?.volume || 0
         },
         preservesPitch() {
-          return controller.preservesPitch
+          return controller?.preservesPitch || false
         }
       },
       {
         lang(value: string) {
-          controller.lang = value
+          if (controller) {
+            controller.lang = value
+          }
         },
         rate(value: number) {
-          controller.rate = value
+          if (controller) {
+            controller.rate = value
+          }
         },
         pitch(value: number) {
-          controller.pitch = value
+          if (controller) {
+            controller.pitch = value
+          }
         },
         volume(value: number) {
-          controller.volume = value
+          if (controller) {
+            controller.volume = value
+          }
         },
         preservesPitch(value: boolean) {
-          controller.preservesPitch = value
+          if (controller) {
+            controller.preservesPitch = value
+          }
         }
       }
     ],
@@ -497,19 +547,21 @@ const useTts = ({
   )
   const onVolume: TTSOnAudioChange = useCallback(
     (evt) => {
-      const volume = evt.detail
-      const min = controller.volumeMin
+      if (controller) {
+        const volume = evt.detail
+        const min = controller.volumeMin
 
-      if (volume === min && controller.volume !== min) {
-        dispatch({ type: 'muted' })
-      }
+        if (volume === min && controller.volume !== min) {
+          dispatch({ type: 'muted' })
+        }
 
-      if (volume !== min && controller.volume === min) {
-        dispatch({ type: 'unmuted' })
-      }
+        if (volume !== min && controller.volume === min) {
+          dispatch({ type: 'unmuted' })
+        }
 
-      if (typeof onVolumeChange === 'function') {
-        onVolumeChange(volume)
+        if (typeof onVolumeChange === 'function') {
+          onVolumeChange(volume)
+        }
       }
     },
     [onVolumeChange, controller]
@@ -532,20 +584,26 @@ const useTts = ({
   )
 
   useEffect(() => {
-    controller.text = spokenText
+    if (controller && spokenText) {
+      controller.text = spokenText
+    }
   }, [spokenText, controller])
 
   useEffect(() => {
-    if (rate && Number.isFinite(rate)) {
-      controller.rate = rate
-    }
+    if (controller) {
+      if (rate && Number.isFinite(rate)) {
+        controller.rate = rate
+      }
 
-    if (volume && Number.isFinite(volume)) {
-      controller.volume = volume
+      if (volume && Number.isFinite(volume)) {
+        controller.volume = volume
+      }
     }
   }, [controller, rate, volume])
 
   useEffect(() => {
+    if (!controller) return
+
     const onBeforeUnload = () => {
       controller.cancel()
     }
@@ -572,6 +630,8 @@ const useTts = ({
     })
 
     return () => {
+      if (!controller) return
+
       window.removeEventListener('beforeunload', onBeforeUnload)
       controller.removeEventListener(Events.PLAYING, onStartHandler as EventListener)
       controller.removeEventListener(Events.PAUSED, onPauseHandler as EventListener)
@@ -599,7 +659,7 @@ const useTts = ({
 
   useEffect(() => {
     const handleAutoPlay = async () => {
-      if (autoPlay && state.isReady) {
+      if (autoPlay && state.isReady && controller) {
         await controller.replay()
         dispatch({ type: 'play' })
       }
@@ -614,6 +674,8 @@ const useTts = ({
   }, [autoPlay, controller, state.isReady, spokenText])
 
   useEffect(() => {
+    if (!isBrowserSupportsSpeechSynthesis) return
+
     const onVoicesChanged = () => {
       dispatch({ type: 'voices', payload: window.speechSynthesis.getVoices() })
     }
@@ -623,11 +685,13 @@ const useTts = ({
     }
 
     return () => {
+      if (!isBrowserSupportsSpeechSynthesis) return
+
       if (typeof window.speechSynthesis.removeEventListener === 'function') {
         window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
       }
     }
-  }, [])
+  }, [isBrowserSupportsSpeechSynthesis])
 
   return {
     get,
@@ -641,6 +705,7 @@ const useTts = ({
     replay,
     playOrStop,
     playOrPause,
+    isBrowserSupportsSpeechSynthesis,
     toggleMute: toggleMuteHandler
   }
 }
