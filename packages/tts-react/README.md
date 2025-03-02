@@ -162,7 +162,8 @@ const {
   replay,
   playOrPause,
   playOrStop,
-  toggleMute
+  toggleMute,
+  isBrowserSupportsSpeechSynthesis
 } = useTts({
   lang,
   voice,
@@ -176,6 +177,7 @@ const {
   onPause,
   onEnd,
   onError,
+  onNotSupported,
   onVolumeChange,
   onPitchChange,
   onRateChange,
@@ -205,6 +207,8 @@ interface TTSHookProps extends MarkStyles {
   onPitchChange?: (newPitch: number) => void
   /** Callback when there is an error of any kind. */
   onError?: (msg: string) => void
+  /** Callback when the utterance/synthesis is not supported. */
+  onNotSupported?: (msg: string) => void
   /** Callback when speaking/audio starts playing. */
   onStart?: (evt: SpeechSynthesisEvent | Event) => void
   /** Callback when the speaking/audio is paused. */
@@ -247,6 +251,8 @@ interface TTSHookResponse {
   playOrPause: () => void
   /** The original children with a possible <mark> included if using `markTextAsSpoken`. */
   ttsChildren: ReactNode
+  /** Whether the current browser supports speech synthesis. */
+  isBrowserSupportsSpeechSynthesis: boolean
 }
 interface TTSHookState {
   voices: SpeechSynthesisVoice[]
@@ -313,6 +319,7 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 | onEnd                          | no       | `(evt: SpeechSynthesisEvent \| Event) => void`                              | none                                                                                                                               | Callback when the speaking/audio has stopped.                                                                                                                                                  |
 | onBoundary                     | no       | `(boundary: TTSBoundaryUpdate, evt: SpeechSynthesisEvent \| Event) => void` | none                                                                                                                               | Callback when a word boundary/mark has been reached.                                                                                                                                           |
 | onError                        | no       | `(msg: string) => void`                                                     | none                                                                                                                               | Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided.                                                                              |
+| onNotSupported                 | no       | `(msg: string) => void`                                                     | none                                                                                                                               | Callback when the utterance/synthesis is not supported in browser.                                                                                                                             |
 | onVolumeChange                 | no       | `(newVolume: number) => void`                                               | none                                                                                                                               | Callback when the volume has changed.                                                                                                                                                          |
 | onRateChange                   | no       | `(newRate: number) => void`                                                 | none                                                                                                                               | Callback when the rate has changed.                                                                                                                                                            |
 | onPitchChange                  | no       | `(newPitch: number) => void`                                                | none                                                                                                                               | Callback when the pitch has changed.                                                                                                                                                           |
