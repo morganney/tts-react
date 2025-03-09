@@ -211,6 +211,8 @@ interface TTSHookProps extends MarkStyles {
   onPause?: (evt: SpeechSynthesisEvent | Event) => void
   /** Calback when the current utterance/audio has ended. */
   onEnd?: (evt: SpeechSynthesisEvent | Event) => void
+  /** Function to call when the SpeechSynthesis API is not supported. */
+  onNotSupported?: TTSFallback
   /** Callback when a word boundary/mark has been reached. */
   onBoundary?: (evt: SpeechSynthesisEvent | Event) => void
   /** Function to fetch audio and speech marks for the spoken text. */
@@ -231,6 +233,8 @@ interface TTSHookResponse {
     volume: () => number
     preservesPitch: () => boolean
   }
+  /** Whether speechSynthesis is supported. */
+  isSynthSupported: boolean
   /** State of the current speaking/audio. */
   state: TTSHookState
   /** The text extracted from the children elements and used to synthesize speech. */
@@ -313,6 +317,7 @@ Most of these are supported by the `useTts` hook, but those marked with an aster
 | onEnd                          | no       | `(evt: SpeechSynthesisEvent \| Event) => void`                              | none                                                                                                                               | Callback when the speaking/audio has stopped.                                                                                                                                                  |
 | onBoundary                     | no       | `(boundary: TTSBoundaryUpdate, evt: SpeechSynthesisEvent \| Event) => void` | none                                                                                                                               | Callback when a word boundary/mark has been reached.                                                                                                                                           |
 | onError                        | no       | `(msg: string) => void`                                                     | none                                                                                                                               | Callback when there is an error of any kind playing the spoken text. The error message (if any) will be provided.                                                                              |
+| onNotSupported                 | no       | `() => void`                                                     | none                                                                                                                               | Callback when SpeechSynthesis is not supported.                                                                                                                             |
 | onVolumeChange                 | no       | `(newVolume: number) => void`                                               | none                                                                                                                               | Callback when the volume has changed.                                                                                                                                                          |
 | onRateChange                   | no       | `(newRate: number) => void`                                                 | none                                                                                                                               | Callback when the rate has changed.                                                                                                                                                            |
 | onPitchChange                  | no       | `(newPitch: number) => void`                                                | none                                                                                                                               | Callback when the pitch has changed.                                                                                                                                                           |

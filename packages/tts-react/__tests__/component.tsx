@@ -4,6 +4,7 @@ import { render, act, waitFor, fireEvent } from '@testing-library/react'
 import { SpeechSynthesisMock } from './speechSynthesis.mock.js'
 import { TextToSpeech, Positions } from '../src/component.js'
 import { stripPunctuation } from '../src/utils.js'
+import './setup.js'
 
 describe('TextToSpeech', () => {
   test('it should have play/pause, replay, and mute buttons by default', async () => {

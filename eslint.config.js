@@ -58,7 +58,7 @@ const config = tseslint.config(
     }
   },
   {
-    files: ['**/src/component.tsx', '**/src/story.tsx'],
+    files: ['**/src/component.tsx', '**/src/story.tsx', '**/src/update.story.tsx'],
     rules: {
       /**
        * Allow onClick handlers for the player controls to return Promise<void>.

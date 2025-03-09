@@ -1,8 +1,9 @@
 import { describe, expect } from '@jest/globals'
 
-import { Controller, Events } from '../src/controller.js'
+import { Controller, ControllerStub, Events } from '../src/controller.js'
 import { SpeechSynthesisMock } from './speechSynthesis.mock.js'
 import type { TTSAudioData } from '../src/controller.js'
+import './setup.js'
 
 describe('Controller', () => {
   const fetchAudioDataResponse: TTSAudioData = {
@@ -194,5 +195,40 @@ describe('Controller', () => {
 
     controller.target.dispatchEvent(new Event('pause'))
     expect(onPaused).toHaveBeenCalled()
+  })
+})
+
+describe('ControllerStub', () => {
+  it('provides a stub when speech synthesis is not supported', () => {
+    const controller = new ControllerStub()
+
+    expect(controller.volume).toBe(1)
+    expect(controller.rate).toBe(1)
+    expect(controller.pitch).toBe(1)
+    expect(controller.preservesPitch).toBe(false)
+    expect(controller.text).toBe('')
+    expect(controller.lang).toBe('')
+
+    expect(async () => {
+      await controller.play()
+    }).not.toThrow()
+    expect(() => {
+      controller.pause()
+    }).not.toThrow()
+    expect(async () => {
+      await controller.resume()
+    }).not.toThrow()
+    expect(() => {
+      controller.cancel()
+    }).not.toThrow()
+    expect(async () => {
+      await controller.mute()
+    }).not.toThrow()
+    expect(async () => {
+      await controller.unmute()
+    }).not.toThrow()
+    expect(async () => {
+      await controller.replay()
+    }).not.toThrow()
   })
 })
