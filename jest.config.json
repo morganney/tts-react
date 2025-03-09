@@ -22,11 +22,12 @@
   },
   "modulePathIgnorePatterns": ["dist"],
   "resolver": "ts-jest-resolver",
-  "setupFilesAfterEnv": ["<rootDir>/jest.setup.ts"],
-  "testEnvironment": "jest-environment-jsdom",
+  "setupFilesAfterEnv": ["@testing-library/jest-dom"],
+  "testEnvironment": "jsdom",
   "testMatch": [
     "**/__tests__/**/*.ts",
     "**/__tests__/**/*.tsx",
+    "!**/__tests__/**/setup.ts",
     "!**/__tests__/**/*.mock.ts"
   ]
 }

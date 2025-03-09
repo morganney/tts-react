@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react",
+          "react-dom/client": "https://esm.sh/react-dom/client",
+          "react/jsx-runtime": "https://esm.sh/react/jsx-runtime",
+          "tts-react": "./packages/tts-react/dist/index.js",
+          "htm": "https://esm.sh/htm"
+        }
+      }
+    </script>
+    <title>ESM + CDN + Import Map + htm</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createElement } from 'react'
+      import { createRoot } from 'react-dom/client'
+      import { TextToSpeech } from 'tts-react'
+      import htm from 'htm'
+
+      const html = htm.bind(createElement)
+
+      createRoot(document.body).render(
+        html`
+          <${TextToSpeech} markTextAsSpoken>
+            <p>Hello from tts-react.</p>
+          </${TextToSpeech}>
+        `
+      )
+    </script>
+  </body>
+</html>

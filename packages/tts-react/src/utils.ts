@@ -12,5 +12,6 @@ const isPunctuation = (text: string): boolean => {
 
   return punctuationRgx.test(trimmed) && trimmed.length === 1
 }
+const noop = (): void => {}
 
-export { isStringOrNumber, stripPunctuation, isPunctuation, punctuationRgx }
+export { isStringOrNumber, stripPunctuation, isPunctuation, noop, punctuationRgx }

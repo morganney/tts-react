@@ -55,7 +55,7 @@ class Controller extends EventTarget {
     super()
 
     this.#lang = options?.lang ?? this.#lang
-    this.#synthesizer = window.speechSynthesis
+    this.#synthesizer = globalThis.speechSynthesis
     this.#target = new SpeechSynthesisUtterance(this.#text)
     this.#dispatchBoundaries = options?.dispatchBoundaries ?? this.#dispatchBoundaries
 
@@ -65,8 +65,8 @@ class Controller extends EventTarget {
     } else {
       this.#initWebSpeechVoice(options?.voice)
 
-      if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = () => {
+      if (globalThis.speechSynthesis) {
+        globalThis.speechSynthesis.onvoiceschanged = () => {
           this.#initWebSpeechVoice(options?.voice)
         }
       }
@@ -75,7 +75,7 @@ class Controller extends EventTarget {
 
   #initWebSpeechVoice(voice?: SpeechSynthesisVoice): void {
     if (this.#target instanceof SpeechSynthesisUtterance) {
-      let voices = window.speechSynthesis.getVoices()
+      let voices = globalThis.speechSynthesis.getVoices()
 
       if (voice) {
         this.#target.voice = voice
@@ -373,22 +373,15 @@ class Controller extends EventTarget {
 
   get preservesPitch(): boolean {
     if (this.#synthesizer instanceof HTMLAudioElement) {
-      return (this.#synthesizer as HTMLAudioElement & { preservesPitch: boolean })
-        .preservesPitch
+      return this.#synthesizer.preservesPitch
     }
 
     return false
   }
 
   set preservesPitch(value: boolean) {
-    /**
-     * `preservesPitch` requires vendor-prefix on some browsers (Safari).
-     * @see https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1300
-     */
     if (this.#synthesizer instanceof HTMLAudioElement) {
-      ;(
-        this.#synthesizer as HTMLAudioElement & { preservesPitch: boolean }
-      ).preservesPitch = value
+      this.#synthesizer.preservesPitch = value
     }
   }
 
@@ -500,7 +493,42 @@ class Controller extends EventTarget {
   }
 }
 
-export { Controller, Events }
+/**
+ * Stub for when speech synthesis is not supported.
+ */
+class ControllerStub {
+  lang = ''
+  rate = 1
+  pitch = 1
+  volume = 1
+  volumeMin = 0
+  preservesPitch = false
+  text = ''
+  cancel() {}
+  init() {
+    return Promise.resolve()
+  }
+  mute() {
+    return Promise.resolve()
+  }
+  unmute() {
+    return Promise.resolve()
+  }
+  play() {
+    return Promise.resolve()
+  }
+  pause() {}
+  resume() {
+    return Promise.resolve()
+  }
+  replay() {
+    return Promise.resolve()
+  }
+  addEventListener() {}
+  removeEventListener() {}
+}
+
+export { Controller, ControllerStub, Events }
 export type {
   TTSAudioData,
   PollySpeechMark,

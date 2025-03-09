@@ -5,6 +5,7 @@ import { SpeechSynthesisMock } from './speechSynthesis.mock.js'
 import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock.js'
 import { useTts } from '../src/hook.js'
 import { stripPunctuation } from '../src/utils.js'
+import './setup.js'
 
 describe('useTts', () => {
   let words: string[] = []

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "rootDir": "..",
     "declaration": false,
-    "types": ["@testing-library/jest-dom"]
+    "types": ["@testing-library/jest-dom", "node"],
   },
   "include": ["*.ts", "*.tsx"]
 }

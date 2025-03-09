@@ -12,9 +12,9 @@ import {
 } from 'react'
 import type { ReactNode } from 'react'
 
-import { Controller, Events } from './controller.js'
+import { Controller, ControllerStub, Events } from './controller.js'
 import type { ControllerOptions, TTSBoundaryUpdate, TTSEvent } from './controller.js'
-import { isStringOrNumber, stripPunctuation } from './utils.js'
+import { isStringOrNumber, stripPunctuation, noop } from './utils.js'
 import { Highlighter } from './highlighter.js'
 
 /**
@@ -53,6 +53,10 @@ type TTSBoundaryHandler = (
   boundary: TTSBoundaryUpdate,
   evt: SpeechSynthesisEvent | Event
 ) => void
+/**
+ * Fallback function to call when the `SpeechSynthesis` API is not supported.
+ */
+type TTSFallback = () => void
 
 interface TTSOnEvent {
   (evt: CustomEvent<TTSEvent>): void
@@ -105,6 +109,8 @@ interface TTSHookProps extends MarkStyles {
   onBoundary?: TTSBoundaryHandler
   /** Calback when the current utterance/audio has ended. */
   onEnd?: TTSEventHandler
+  /** Function to call when the `SpeechSynthesis` API is not supported. */
+  onNotSupported?: TTSFallback
   /** Function to fetch audio and speech marks for the spoken text. */
   fetchAudioData?: ControllerOptions['fetchAudioData']
 }
@@ -150,6 +156,8 @@ interface TTSHookResponse {
     volume: () => number
     preservesPitch: () => boolean
   }
+  /** Whether speechSynthesis is supported. */
+  isSynthSupported: boolean
   /** State of the current speaking/audio. */
   state: TTSHookState
   /** The text extracted from the children elements and used to synthesize speech. */
@@ -307,50 +315,54 @@ const useTts = ({
   onVolumeChange,
   onPitchChange,
   onRateChange,
+  onNotSupported,
   fetchAudioData,
   autoPlay = false,
   markTextAsSpoken = false
 }: TTSHookProps): TTSHookResponse => {
-  const spokenTextRef = useRef<string>(undefined)
+  const spokenTextRef = useRef<string>('')
+  const handleNotSupported = onNotSupported || noop
+  const isSynthSupported =
+    typeof globalThis !== 'undefined' && 'speechSynthesis' in globalThis
   const [state, dispatch] = useReducer(reducer, {
-    voices: window.speechSynthesis.getVoices() ?? [],
+    voices: isSynthSupported ? globalThis.speechSynthesis.getVoices() : [],
     boundary: defaultBoundary,
     isPlaying: false,
     isPaused: false,
     isMuted: false,
     isError: false,
-    isReady: typeof fetchAudioData === 'undefined'
+    isReady: isSynthSupported && typeof fetchAudioData === 'undefined'
   })
   const [ttsChildren, spokenText] = useMemo(() => {
-    if (typeof spokenTextRef.current === 'undefined' || markTextAsSpoken) {
-      const buffer: TextBuffer = { text: '' }
-      const parsed = parseChildrenRecursively({
-        children,
-        buffer,
-        markColor,
-        markBackgroundColor,
-        markTextAsSpoken,
-        boundary: state.boundary
-      })
+    const buffer: TextBuffer = { text: '' }
+    const parsed = parseChildrenRecursively({
+      children,
+      buffer,
+      markColor,
+      markBackgroundColor,
+      markTextAsSpoken,
+      boundary: state.boundary
+    })
 
-      spokenTextRef.current = buffer.text.trim()
+    spokenTextRef.current = buffer.text.trim()
 
-      return [parsed, spokenTextRef.current]
-    }
-
-    return [children, spokenTextRef.current]
+    return [parsed, spokenTextRef.current]
   }, [children, state.boundary, markColor, markBackgroundColor, markTextAsSpoken])
   const controller = useMemo(
     () =>
-      new Controller({
-        lang,
-        voice,
-        fetchAudioData
-      }),
-    [lang, voice, fetchAudioData]
+      isSynthSupported
+        ? new Controller({
+            lang,
+            voice,
+            fetchAudioData
+          })
+        : new ControllerStub(),
+    [lang, voice, isSynthSupported, fetchAudioData]
   )
   const play = useCallback(async () => {
-    if (state.isPaused) {
+    if (!isSynthSupported) {
+      handleNotSupported()
+    } else if (state.isPaused) {
       await controller.resume()
     } else {
       // Replay gives a more consistent/expected experience
@@ -358,7 +370,7 @@ const useTts = ({
     }
 
     dispatch({ type: 'play' })
-  }, [controller, state.isPaused])
+  }, [controller, state.isPaused, isSynthSupported, handleNotSupported])
   const pause = useCallback(() => {
     controller.pause()
     dispatch({ type: 'pause' })
@@ -391,19 +403,23 @@ const useTts = ({
     [controller]
   )
   const playOrPause = useCallback(async () => {
-    if (state.isPlaying) {
+    if (!isSynthSupported) {
+      handleNotSupported()
+    } else if (state.isPlaying) {
       pause()
     } else {
       await play()
     }
-  }, [state.isPlaying, pause, play])
+  }, [state.isPlaying, isSynthSupported, handleNotSupported, pause, play])
   const playOrStop = useCallback(async () => {
-    if (state.isPlaying) {
+    if (!isSynthSupported) {
+      handleNotSupported()
+    } else if (state.isPlaying) {
       stop()
     } else {
       await play()
     }
-  }, [state.isPlaying, stop, play])
+  }, [state.isPlaying, isSynthSupported, handleNotSupported, stop, play])
   const [get, set] = useMemo(
     () => [
       {
@@ -559,7 +575,7 @@ const useTts = ({
       controller.addEventListener(Events.VOLUME, onVolume as EventListener)
       controller.addEventListener(Events.PITCH, onPitch as EventListener)
       controller.addEventListener(Events.RATE, onRate as EventListener)
-      window.addEventListener('beforeunload', onBeforeUnload)
+      globalThis.addEventListener('beforeunload', onBeforeUnload)
 
       await controller.init()
     }
@@ -572,7 +588,7 @@ const useTts = ({
     })
 
     return () => {
-      window.removeEventListener('beforeunload', onBeforeUnload)
+      globalThis.removeEventListener('beforeunload', onBeforeUnload)
       controller.removeEventListener(Events.PLAYING, onStartHandler as EventListener)
       controller.removeEventListener(Events.PAUSED, onPauseHandler as EventListener)
       controller.removeEventListener(Events.END, onEndHandler as EventListener)
@@ -599,9 +615,13 @@ const useTts = ({
 
   useEffect(() => {
     const handleAutoPlay = async () => {
-      if (autoPlay && state.isReady) {
-        await controller.replay()
-        dispatch({ type: 'play' })
+      if (autoPlay) {
+        if (!isSynthSupported) {
+          handleNotSupported()
+        } else if (state.isReady) {
+          await controller.replay()
+          dispatch({ type: 'play' })
+        }
       }
     }
 
@@ -611,20 +631,20 @@ const useTts = ({
         console.error(`Unable to auto play: ${err.message}`)
       }
     })
-  }, [autoPlay, controller, state.isReady, spokenText])
+  }, [autoPlay, controller, state.isReady, isSynthSupported, handleNotSupported])
 
   useEffect(() => {
     const onVoicesChanged = () => {
-      dispatch({ type: 'voices', payload: window.speechSynthesis.getVoices() })
+      dispatch({ type: 'voices', payload: globalThis.speechSynthesis.getVoices() })
     }
 
-    if (typeof window.speechSynthesis.addEventListener === 'function') {
-      window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged)
+    if (typeof globalThis.speechSynthesis?.addEventListener === 'function') {
+      globalThis.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged)
     }
 
     return () => {
-      if (typeof window.speechSynthesis.removeEventListener === 'function') {
-        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
+      if (typeof globalThis.speechSynthesis?.removeEventListener === 'function') {
+        globalThis.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
       }
     }
   }, [])
@@ -635,6 +655,7 @@ const useTts = ({
     state,
     spokenText,
     ttsChildren,
+    isSynthSupported,
     play,
     stop,
     pause,

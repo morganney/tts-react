@@ -15,6 +15,7 @@
     "precheck-types": "npm run build:tts",
     "check-types": "npm run check-types --workspaces",
     "build:tts": "npm run build -w tts-react",
+    "local:build": "npm run build:tts && http-server -o build.html",
     "prebuild:story": "npm run build:tts",
     "build:story": "npm run build -w story",
     "prestory": "npm run build:tts",
@@ -37,15 +38,15 @@
     "@types/jest": "^29.5.12",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
-    "babel-jest": "^29.7.0",
+    "babel-jest": "^30.0.0-alpha.7",
     "eslint": "^9.16.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.1.0",
     "globals": "^15.6.0",
     "http-server": "^14.1.1",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
+    "jest": "^30.0.0-alpha.7",
+    "jest-environment-jsdom": "^30.0.0-alpha.7",
     "prettier": "^3.2.5",
     "ts-jest-resolver": "^2.0.1",
     "typescript": "^5.7.2",
@@ -55,6 +56,11 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tough-cookie": "^5.0.0",
-    "whatwg-url": "^14.0.0"
+    "whatwg-url": "^14.0.0",
+    "jsdom": "^26.0.0",
+    "rimraf": "^4.4.1",
+    "test-exclude": {
+      "glob": "^9.3.5"
+    }
   }
 }

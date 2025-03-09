@@ -2,7 +2,7 @@ import type { StorybookConfig } from '@storybook/react-webpack5'
 import type { TransformOptions } from '@babel/core'
 
 const config: StorybookConfig = {
-  stories: ['../src/story.tsx', '../src/count.story.tsx'],
+  stories: ['../src/story.tsx', '../src/count.story.tsx', '../src/update.story.tsx'],
   addons: [
     '@storybook/addon-controls',
     '@storybook/addon-actions',
