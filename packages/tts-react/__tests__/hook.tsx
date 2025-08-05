@@ -370,12 +370,17 @@ describe('useTts', () => {
     )
 
     expect(result.current.spokenText).toBe(testText)
-    expect(mockRender).toHaveBeenCalledWith({
-      children: testText,
-      boundary: expect.any(Object),
-      markTextAsSpoken: true,
-      markColor: undefined,
-      markBackgroundColor: undefined
-    })
+    expect(mockRender).toHaveBeenCalledTimes(1)
+    const callArgs = mockRender.mock.calls[0][0]
+    expect(callArgs.children).toBe(testText)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof callArgs.boundary.word).toBe('string')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof callArgs.boundary.startChar).toBe('number')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof callArgs.boundary.endChar).toBe('number')
+    expect(callArgs.markTextAsSpoken).toBe(true)
+    expect(callArgs.markColor).toBeUndefined()
+    expect(callArgs.markBackgroundColor).toBeUndefined()
   })
 })
