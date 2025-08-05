@@ -35,7 +35,7 @@ const extractTextFromChildren = (children: ReactNode): string => {
   }
 
   // Handle React elements
-  if (isValidElement(children) && children.props && 'children' in children.props) {
+  if (isValidElement(children) && children.props && typeof children.props === 'object' && children.props !== null && 'children' in children.props) {
     // For React elements, recursively extract text from their children
     return extractTextFromChildren(children.props.children as ReactNode)
   }
