@@ -4,17 +4,14 @@ import {
   useReducer,
   useCallback,
   useEffect,
-  Children,
-  cloneElement,
   createElement,
-  isValidElement,
   Fragment
 } from 'react'
 import type { ReactNode } from 'react'
 
 import { Controller, ControllerStub, Events } from './controller.js'
 import type { ControllerOptions, TTSBoundaryUpdate, TTSEvent } from './controller.js'
-import { isStringOrNumber, stripPunctuation, noop } from './utils.js'
+import { stripPunctuation, noop, extractTextFromChildren } from './utils.js'
 import { Highlighter } from './highlighter.js'
 
 /**
@@ -78,9 +75,24 @@ interface MarkStyles {
   /** Background color of the currently marked word. */
   markBackgroundColor?: string
 }
+/**
+ * Render prop function type for custom text highlighting
+ */
+type TTSRenderProp = (params: {
+  children: ReactNode
+  boundary: TTSBoundaryUpdate
+  markTextAsSpoken: boolean
+  markColor?: string
+  markBackgroundColor?: string
+}) => ReactNode
+
 interface TTSHookProps extends MarkStyles {
   /** The spoken text is extracted from here. */
-  children: ReactNode
+  children?: ReactNode
+  /** Direct text to be spoken - alternative to children. */
+  text?: string
+  /** Render prop for custom highlighting - receives highlighting parameters */
+  render?: TTSRenderProp
   /** The `SpeechSynthesisUtterance.lang` to use. */
   lang?: ControllerOptions['lang']
   /** The `SpeechSynthesisUtterance.voice` to use. */
@@ -175,82 +187,61 @@ interface TTSHookResponse {
   /** The original children with a possible <mark> included if using `markTextAsSpoken`. */
   ttsChildren: ReactNode
 }
-interface TextBuffer {
-  text: string
-}
-interface ParseChildrenProps extends MarkStyles {
-  children: ReactNode
-  buffer: TextBuffer
-  boundary: TTSBoundaryUpdate
-  markTextAsSpoken: boolean
-}
+/**
+ * Creates highlighted text using render prop pattern instead of Children.map
+ */
+const createHighlightedContent = (
+  children: ReactNode,
+  text: string,
+  boundary: TTSBoundaryUpdate,
+  markTextAsSpoken: boolean,
+  markColor?: string,
+  markBackgroundColor?: string,
+  renderProp?: TTSRenderProp
+): ReactNode => {
+  // If a render prop is provided, use it
+  if (renderProp) {
+    return renderProp({
+      children,
+      boundary,
+      markTextAsSpoken,
+      markColor,
+      markBackgroundColor
+    })
+  }
 
-const isObjectReactNode = (value: unknown): value is Record<string, ReactNode> =>
-  typeof value === 'object' && value !== null
-const parseChildrenRecursively = ({
-  children,
-  buffer,
-  boundary,
-  markColor,
-  markBackgroundColor,
-  markTextAsSpoken
-}: ParseChildrenProps): ReactNode => {
-  return Children.map(children, (child) => {
-    let currentChild = child
+  // If not marking text as spoken or no boundary word, return original children
+  if (!markTextAsSpoken || !boundary.word || !children) {
+    return children
+  }
 
-    if (isValidElement(child)) {
-      const childProps = isObjectReactNode(child.props) ? child.props : {}
+  // For simple text content, apply highlighting directly
+  if (typeof children === 'string') {
+    const { word, startChar, endChar } = boundary
+    const prev = text.substring(0, startChar)
+    const found = text.substring(startChar, endChar)
+    const after = text.substring(endChar)
 
-      currentChild = cloneElement(child, {
-        ...childProps,
-        // @ts-expect-error - `children` is not a valid prop for ReactElement
-        children: parseChildrenRecursively({
-          buffer,
-          boundary,
-          markColor,
-          markBackgroundColor,
-          markTextAsSpoken,
-          children: childProps.children
-        })
+    if (found && stripPunctuation(found) === stripPunctuation(word)) {
+      const Highlight = createElement(Highlighter, {
+        text: found,
+        mark: stripPunctuation(found),
+        color: markColor,
+        backgroundColor: markBackgroundColor
       })
+      
+      return createElement(
+        Fragment,
+        { key: `tts-${startChar}-${endChar}` },
+        prev,
+        Highlight,
+        after
+      )
     }
+  }
 
-    if (isStringOrNumber(child)) {
-      const text = (child as string | number).toString()
-      const { word, startChar, endChar } = boundary
-      const bufferTextLength = buffer.text.length
-
-      buffer.text += `${text} `
-
-      if (markTextAsSpoken && word) {
-        const start = startChar - bufferTextLength
-        const end = endChar - bufferTextLength
-        const prev = text.substring(0, start)
-        const found = text.substring(start, end)
-        const after = text.substring(end, text.length)
-
-        if (found) {
-          const Highlight = createElement(Highlighter, {
-            text: found,
-            mark: stripPunctuation(found),
-            color: markColor,
-            backgroundColor: markBackgroundColor
-          })
-          const Highlighted = createElement(
-            Fragment,
-            { key: `tts-${start}-${end}` },
-            prev,
-            Highlight,
-            after
-          )
-
-          return Highlighted
-        }
-      }
-    }
-
-    return currentChild
-  })
+  // For complex content, return as-is (highlighting would need custom render prop)
+  return children
 }
 const defaultBoundary = { word: '', startChar: 0, endChar: 0 }
 const reducer = (state: TTSHookState, action: Action): TTSHookState => {
@@ -305,6 +296,8 @@ const useTts = ({
   volume,
   voice,
   children,
+  text,
+  render,
   markColor,
   markBackgroundColor,
   onStart,
@@ -334,20 +327,24 @@ const useTts = ({
     isReady: isSynthSupported && typeof fetchAudioData === 'undefined'
   })
   const [ttsChildren, spokenText] = useMemo(() => {
-    const buffer: TextBuffer = { text: '' }
-    const parsed = parseChildrenRecursively({
-      children,
-      buffer,
+    // Use text prop if provided, otherwise extract from children
+    const extractedText = text || (children ? extractTextFromChildren(children) : '')
+    
+    // Create highlighted content using the new approach
+    const highlightedContent = createHighlightedContent(
+      children || extractedText,
+      extractedText,
+      state.boundary,
+      markTextAsSpoken,
       markColor,
       markBackgroundColor,
-      markTextAsSpoken,
-      boundary: state.boundary
-    })
+      render
+    )
 
-    spokenTextRef.current = buffer.text.trim()
+    spokenTextRef.current = extractedText.trim()
 
-    return [parsed, spokenTextRef.current]
-  }, [children, state.boundary, markColor, markBackgroundColor, markTextAsSpoken])
+    return [highlightedContent, spokenTextRef.current]
+  }, [children, text, state.boundary, markColor, markBackgroundColor, markTextAsSpoken, render])
   const controller = useMemo(
     () =>
       isSynthSupported
@@ -674,5 +671,6 @@ export type {
   TTSEventHandler,
   TTSErrorHandler,
   TTSBoundaryHandler,
-  TTSAudioChangeHandler
+  TTSAudioChangeHandler,
+  TTSRenderProp
 }
