@@ -4,6 +4,7 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { SpeechSynthesisMock } from './speechSynthesis.mock.js'
 import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock.js'
 import { useTts } from '../src/hook.js'
+import type { TTSRenderProp } from '../src/hook.js'
 import { stripPunctuation } from '../src/utils.js'
 import './setup.js'
 
@@ -355,7 +356,7 @@ describe('useTts', () => {
 
   it('supports render prop for custom highlighting', async () => {
     const testText = 'Test text for highlighting'
-    const mockRender = jest.fn((params) => params.children)
+    const mockRender = jest.fn<ReturnType<TTSRenderProp>, Parameters<TTSRenderProp>>((params: Parameters<TTSRenderProp>[0]) => params.children)
     
     const { result } = renderHook(
       ({ text, render, markTextAsSpoken }) => useTts({ text, render, markTextAsSpoken }),
