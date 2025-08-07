@@ -4,6 +4,7 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { SpeechSynthesisMock } from './speechSynthesis.mock.js'
 import { SpeechSynthesisEventMock } from './speechSynthesisEvent.mock.js'
 import { useTts } from '../src/hook.js'
+import type { TTSRenderProp } from '../src/hook.js'
 import { stripPunctuation } from '../src/utils.js'
 import './setup.js'
 
@@ -320,5 +321,66 @@ describe('useTts', () => {
     })
     global.dispatchEvent(new Event('beforeunload'))
     expect(global.speechSynthesis.cancel).toHaveBeenCalled()
+  })
+
+  it('accepts text prop as an alternative to children', async () => {
+    const testText = 'This is direct text for TTS'
+    const { result } = renderHook(
+      ({ text }) => useTts({ text }),
+      {
+        initialProps: {
+          text: testText
+        }
+      }
+    )
+
+    expect(result.current.spokenText).toBe(testText)
+    expect(result.current.ttsChildren).toBe(testText)
+  })
+
+  it('prefers text prop over children when both are provided', async () => {
+    const testText = 'Direct text prop'
+    const childrenText = 'Children text'
+    const { result } = renderHook(
+      ({ text, children }) => useTts({ text, children }),
+      {
+        initialProps: {
+          text: testText,
+          children: <p>{childrenText}</p>
+        }
+      }
+    )
+
+    expect(result.current.spokenText).toBe(testText)
+  })
+
+  it('supports render prop for custom highlighting', async () => {
+    const testText = 'Test text for highlighting'
+    const mockRender = jest.fn<ReturnType<TTSRenderProp>, Parameters<TTSRenderProp>>((params: Parameters<TTSRenderProp>[0]) => params.children)
+    
+    const { result } = renderHook(
+      ({ text, render, markTextAsSpoken }) => useTts({ text, render, markTextAsSpoken }),
+      {
+        initialProps: {
+          text: testText,
+          render: mockRender,
+          markTextAsSpoken: true
+        }
+      }
+    )
+
+    expect(result.current.spokenText).toBe(testText)
+    expect(mockRender).toHaveBeenCalledTimes(1)
+    const callArgs = mockRender.mock.calls[0][0]
+    expect(callArgs.children).toBe(testText)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof callArgs.boundary.word).toBe('string')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof callArgs.boundary.startChar).toBe('number')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof callArgs.boundary.endChar).toBe('number')
+    expect(callArgs.markTextAsSpoken).toBe(true)
+    expect(callArgs.markColor).toBeUndefined()
+    expect(callArgs.markBackgroundColor).toBeUndefined()
   })
 })
