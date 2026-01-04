@@ -26,7 +26,7 @@
   "sideEffects": false,
   "scripts": {
     "check-types": "tsc --noEmit",
-    "build": "duel",
+    "build": "duel --dual-package-hazard-allowlist react",
     "prepack": "npm run build"
   },
   "repository": {
