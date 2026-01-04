@@ -22,6 +22,6 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "storybook": "^9.1.17",
-    "tts-react": "^4.1.1"
+    "tts-react": "^4.1.2"
   }
 }
