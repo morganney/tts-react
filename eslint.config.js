@@ -74,6 +74,16 @@ const config = tseslint.config(
     }
   },
   {
+    files: ['**/src/component.tsx'],
+    rules: {
+      /**
+       * Keep enum-based public type compatibility in v4.
+       * We will migrate `Positions` to `as const` when shipping tts-react v5.
+       */
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off'
+    }
+  },
+  {
     ignores: ['dist', 'build', 'coverage'],
   }
 )
