@@ -9,24 +9,21 @@
           "react": "https://esm.sh/react",
           "react-dom/client": "https://esm.sh/react-dom/client",
           "react/jsx-runtime": "https://esm.sh/react/jsx-runtime",
-          "tts-react": "./packages/tts-react/dist/index.js",
-          "htm": "https://esm.sh/htm"
+          "@knighted/jsx/react": "https://esm.sh/@knighted/jsx/react",
+          "tts-react": "./packages/tts-react/dist/index.js" 
         }
       }
     </script>
-    <title>ESM + CDN + Import Map + htm</title>
+    <title>ESM + CDN + Import Map + @knighted/jsx/react</title>
   </head>
   <body>
     <script type="module">
-      import { createElement } from 'react'
       import { createRoot } from 'react-dom/client'
       import { TextToSpeech } from 'tts-react'
-      import htm from 'htm'
-
-      const html = htm.bind(createElement)
+      import { reactJsx } from '@knighted/jsx/react'
 
       createRoot(document.body).render(
-        html`
+        reactJsx`
           <${TextToSpeech} markTextAsSpoken>
             <p>Hello from tts-react.</p>
           </${TextToSpeech}>

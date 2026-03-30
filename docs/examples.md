@@ -26,9 +26,9 @@ Using `tts-react` with ESM from a CDN:
 </html>
 ```
 
-#### `htm`
+#### `@knighted/jsx/react`
 
-Use [`htm`](https://github.com/developit/htm) for JSX-like syntax:
+Use [`@knighted/jsx/react`](https://github.com/knightedcodemonkey/jsx) for JSX-like syntax:
 
 ```html
 <!doctype html>
@@ -36,19 +36,16 @@ Use [`htm`](https://github.com/developit/htm) for JSX-like syntax:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ESM + CDN + htm</title>
+    <title>ESM + CDN + @knighted/jsx/react</title>
   </head>
   <body>
     <script type="module">
-      import { createElement } from 'https://esm.sh/react'
       import { createRoot } from 'https://esm.sh/react-dom/client'
       import { TextToSpeech } from 'https://esm.sh/tts-react'
-      import htm from 'https://esm.sh/htm'
-
-      const html = htm.bind(createElement)
+      import { reactJsx } from 'https://esm.sh/@knighted/jsx/react'
 
       createRoot(document.body).render(
-        html`
+        reactJsx`
           <${TextToSpeech} markTextAsSpoken>
             <p>Hello from tts-react.</p>
           </${TextToSpeech}>
@@ -75,23 +72,20 @@ You can also use an [import map](https://developer.mozilla.org/en-US/docs/Web/HT
           "react": "https://esm.sh/react",
           "react-dom/client": "https://esm.sh/react-dom/client",
           "tts-react": "https://esm.sh/tts-react",
-          "htm": "https://esm.sh/htm"
+          "@knighted/jsx/react": "https://esm.sh/@knighted/jsx/react"
         }
       }
     </script>
-    <title>ESM + CDN + Import Map + htm</title>
+    <title>ESM + CDN + Import Map + @knighted/jsx/react</title>
   </head>
   <body>
     <script type="module">
-      import { createElement } from 'react'
       import { createRoot } from 'react-dom/client'
       import { TextToSpeech } from 'tts-react'
-      import htm from 'htm'
-
-      const html = htm.bind(createElement)
+      import { reactJsx } from '@knighted/jsx/react'
 
       createRoot(document.body).render(
-        html`
+        reactJsx`
           <${TextToSpeech} markTextAsSpoken>
             <p>Hello from tts-react.</p>
           </${TextToSpeech}>
