@@ -1,8 +1,11 @@
-import { useMemo, useCallback } from 'react'
-import type { CSSProperties } from 'react'
+import { useMemo, useCallback, createElement, cloneElement, Fragment, isValidElement } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 import { useTts } from './hook.js'
-import type { TTSHookProps } from './hook.js'
+import type { TTSHookProps, TTSRenderProp } from './hook.js'
+import type { TTSBoundaryUpdate } from './controller.js'
+import { isStringOrNumber, stripPunctuation, extractTextFromChildren } from './utils.js'
+import { Highlighter } from './highlighter.js'
 import { iconSizes, Sizes } from './icons.js'
 import type { SvgProps } from './icons.js'
 import { Control, padding as ctrlPadding } from './control.js'
@@ -103,6 +106,90 @@ const content = (): CSSProperties => {
     gridArea: 'cnt'
   }
 }
+
+/**
+ * Default render prop implementation that handles complex React children
+ * by recursively applying highlighting similar to the old Children.map approach
+ */
+const createDefaultRenderer = (
+  text: string,
+  markColor?: string,
+  markBackgroundColor?: string
+): TTSRenderProp => {
+  let textBuffer = ''
+
+  const parseChildrenRecursively = (
+    children: ReactNode,
+    boundary: TTSBoundaryUpdate,
+    markTextAsSpoken: boolean
+  ): ReactNode => {
+    if (!children) return children
+
+    // Handle arrays of children
+    if (Array.isArray(children)) {
+      return children.map((child: ReactNode) => 
+        parseChildrenRecursively(child, boundary, markTextAsSpoken)
+      )
+    }
+
+    // Handle React elements
+    if (isValidElement(children)) {
+      const childProps = children.props && typeof children.props === 'object' ? children.props : {}
+      
+      return cloneElement(children, {
+        ...childProps,
+        children: parseChildrenRecursively(
+          'children' in childProps ? (childProps.children as ReactNode) : undefined,
+          boundary,
+          markTextAsSpoken
+        )
+      } as Record<string, unknown>)
+    }
+
+    // Handle string and number primitives
+    if (isStringOrNumber(children)) {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      const childText = String(children)
+      const { word, startChar, endChar } = boundary
+      const bufferTextLength = textBuffer.length
+
+      textBuffer += `${childText} `
+
+      if (markTextAsSpoken && word) {
+        const start = startChar - bufferTextLength
+        const end = endChar - bufferTextLength
+        const prev = childText.substring(0, start)
+        const found = childText.substring(start, end)
+        const after = childText.substring(end, childText.length)
+
+        if (found && stripPunctuation(found) === stripPunctuation(word)) {
+          const Highlight = createElement(Highlighter, {
+            text: found,
+            mark: stripPunctuation(found),
+            color: markColor,
+            backgroundColor: markBackgroundColor
+          })
+          
+          return createElement(
+            Fragment,
+            { key: `tts-${start}-${end}` },
+            prev,
+            Highlight,
+            after
+          )
+        }
+      }
+    }
+
+    return children
+  }
+
+  return ({ children, boundary, markTextAsSpoken }) => {
+    // Reset the buffer for each render
+    textBuffer = ''
+    return parseChildrenRecursively(children, boundary, markTextAsSpoken)
+  }
+}
 /**
  * `useTts` is a React hook for converting text to speech using
  * the `SpeechSynthesis` and `SpeechSynthesisUtterance` Browser API's.
@@ -128,6 +215,8 @@ const TextToSpeech = ({
   voice,
   volume,
   children,
+  text,
+  render,
   position,
   onStart,
   onPause,
@@ -148,12 +237,24 @@ const TextToSpeech = ({
   markTextAsSpoken = false,
   useStopOverPause = false
 }: TTSProps) => {
+  // Create a default renderer for complex content when markTextAsSpoken is true
+  // but no custom render prop is provided
+  const defaultRenderer = useMemo(() => {
+    if (markTextAsSpoken && !render) {
+      const extractedText = text || (children ? extractTextFromChildren(children) : '')
+      return createDefaultRenderer(extractedText, markColor, markBackgroundColor)
+    }
+    return undefined
+  }, [markTextAsSpoken, render, text, children, markColor, markBackgroundColor])
+
   const { state, replay, toggleMute, playOrPause, playOrStop, ttsChildren } = useTts({
     lang,
     rate,
     voice,
     volume,
     children,
+    text,
+    render: render || defaultRenderer,
     onStart,
     onPause,
     onBoundary,
